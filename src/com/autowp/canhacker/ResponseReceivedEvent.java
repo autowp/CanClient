@@ -2,20 +2,22 @@ package com.autowp.canhacker;
 
 import java.util.EventObject;
 
-public class CommandReceivedEvent extends EventObject {
+import com.autowp.canhacker.response.Response;
+
+public class ResponseReceivedEvent extends EventObject {
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
-    
-    protected String command;
+     
+    protected Response command;
 
-    public CommandReceivedEvent(Object source, String command) {
+    public ResponseReceivedEvent(Object source, Response command) {
         super(source);
         this.command = command;
     }
     
-    public String getCommand()
+    public Response getCommand()
     {
         return command;
     }

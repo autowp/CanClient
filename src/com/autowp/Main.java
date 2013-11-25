@@ -23,11 +23,19 @@ import java.util.Vector;
 
 import javax.swing.JToggleButton;
 
-import com.autowp.canhacker.CommandReceivedEvent;
-import com.autowp.canhacker.CommandReceivedEventClassListener;
+import com.autowp.canclient.CanClient;
+import com.autowp.canclient.CanFrame;
+import com.autowp.canclient.FrameReceivedEvent;
+import com.autowp.canclient.FrameReceivedEventClassListener;
+import com.autowp.canclient.FrameSentEvent;
+import com.autowp.canclient.FrameSentEventClassListener;
+import com.autowp.canhacker.CanHacker;
+import com.autowp.canhacker.ResponseReceivedEvent;
+import com.autowp.canhacker.ResponseReceivedEventClassListener;
 import com.autowp.canhacker.CommandSendEvent;
 import com.autowp.canhacker.CommandSendEventClassListener;
 import javax.swing.JComboBox;
+import javax.swing.JButton;
 
 public class Main {
 
@@ -65,8 +73,6 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new GridLayout(2, 2, 10, 10));
         
-        final CanClient client = new CanClient();
-        
         JPanel panel_1 = new JPanel();
         frame.getContentPane().add(panel_1);
         
@@ -79,21 +85,36 @@ public class Main {
         textArea.setEditable(false);
         panel_1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         
+        final CanClient client = new CanClient();
+        
         JToggleButton connectButton = new JToggleButton("Connect");
         
         HashSet<CommPortIdentifier> ports = getAvailableSerialPorts();
         
         Vector<String> comboBoxItems = new Vector<String>();
-        final DefaultComboBoxModel model = new DefaultComboBoxModel(comboBoxItems);
+        final DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(comboBoxItems);
         for (CommPortIdentifier port : ports) {
             comboBoxItems.add(port.getName());
         }
         model.setSelectedItem("COM3");
         
-        final JComboBox portName = new JComboBox(model);
+        final JComboBox<String> portName = new JComboBox<String>(model);
         panel_1.add(portName);
 
         panel_1.add(connectButton);
+        
+        JButton btnSendTest = new JButton("Send");
+        btnSendTest.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                try {
+                    client.send(new CanFrame(CanFrame.ID_IGNITION, "0E00000F010000A0"));
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                    textArea.append("Exception: " + e.toString() + "\n");
+                }
+            }
+        });
+        panel_1.add(btnSendTest);
         
         
         connectButton.addActionListener(new ActionListener() {
@@ -103,14 +124,44 @@ public class Main {
                     if (!client.isConnected()) {
                         textArea.append("Connecting\n");
                         
-                        client.setPortName((String) portName.getSelectedItem());
+                        CanHacker canHacker = new CanHacker();
+                        canHacker.setPortName((String) portName.getSelectedItem());
+                        canHacker.setSpeed(115200);
+                        
+                        canHacker.addEventListener(new CommandSendEventClassListener() {
+                            public void handleCommandSendEventClassEvent(CommandSendEvent e) {
+                                textArea.append("-> " + e.getCommand().toString() + "\n");
+                            }
+                        });
+                        
+                        canHacker.addEventListener(new ResponseReceivedEventClassListener() {
+                            public void handleResponseReceivedEventClassEvent(ResponseReceivedEvent e) {
+                                textArea.append("<- " + e.getCommand().toString() + "\n");
+                            }
+                        });
+                        
+                        
+                        client.setAdapter(canHacker);
+                        
+                        client.addEventListener(new FrameReceivedEventClassListener() {
+                            public void handleFrameReceivedEvent(FrameReceivedEvent e) {
+                                textArea.append("<- [CAN] " + e.getFrame().toString() + "\n");
+                            }
+                        });
+                        client.addEventListener(new FrameSentEventClassListener() {
+                            public void handleFrameSentEvent(FrameSentEvent e) {
+                                textArea.append("-> [CAN] " + e.getFrame().toString() + "\n");
+                            }
+                        });
+                        
                         try {
                             client.connect();
                             textArea.append("Connected\n");
+                            
                         } catch (PortInUseException e) {
-                            textArea.append("Error: Port " + client.getPortName() + " in use\n");
+                            textArea.append("Error: Port " + canHacker.getPortName() + " in use\n");
                         } catch (NoSuchPortException e) {
-                            textArea.append("Error: Port " + client.getPortName() + " not found\n");
+                            textArea.append("Error: Port " + canHacker.getPortName() + " not found\n");
                         } catch (Exception e) {
                             textArea.append("Exception: " + e.toString() + "\n");
                         }
@@ -124,18 +175,6 @@ public class Main {
                         textArea.append("Disconnected\n");
                     }
                 }
-            }
-        });
-        
-        client.getCanHacker().addEventListener(new CommandSendEventClassListener() {
-            public void handleCommandSendEventClassEvent(CommandSendEvent e) {
-                textArea.append("-> " + e.getCommand().toString() + "\n");
-            }
-        });
-        
-        client.getCanHacker().addEventListener(new CommandReceivedEventClassListener() {
-            public void handleCommandReceivedEventClassEvent(CommandReceivedEvent e) {
-                textArea.append("<- " + e.getCommand() + "\n");
             }
         });
         

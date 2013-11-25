@@ -42,6 +42,16 @@ public class TransmitCommand extends Command {
         System.arraycopy(newData, 0, this.data, 0, newData.length);
     }
     
+    public int getId()
+    {
+        return id;
+    }
+    
+    public byte[] getData()
+    {
+        return data;
+    }
+    
     protected static String idToHex(int id)
     {
         return String.format("%03X", id);
