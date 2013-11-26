@@ -3,6 +3,11 @@
  */
 package com.autowp.canclient;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 /**
  * @author Dmitry
@@ -10,6 +15,8 @@ package com.autowp.canclient;
  */
 public class CanClient {
     protected CanAdapter adapter;
+    
+    private List<Timer> timers = new ArrayList<Timer>();
     
     public CanClient()
     {
@@ -33,6 +40,16 @@ public class CanClient {
     public CanClient disconnect()
     {
         adapter.disconnect();
+        
+        return this.stopTimers();
+    }
+    
+    public CanClient stopTimers()
+    {
+        for (Timer t : this.timers) {
+            t.cancel();
+        }
+        this.timers.clear();
         
         return this;
     }
@@ -71,5 +88,46 @@ public class CanClient {
     
     public void removeEventListener(FrameReceivedEventClassListener listener){
         adapter.removeEventListener(listener);
+    }
+    
+    public void addTimerTaskFrame(CanFrame frame, long delay, long period)
+    {
+        Timer timer = new Timer();
+        timer.schedule(new FrameTimerTask(this, frame), delay, period);
+        
+        this.timers.add(timer);
+    }
+    
+    public class FrameTimerTask extends TimerTask {
+        private CanClient client;
+        private CanFrame frame;
+        
+        public FrameTimerTask(CanClient client, CanFrame frame)
+        {
+            this.client = client;
+            this.frame = frame;
+        }
+        
+        public void run() {
+            try {
+                this.client.send(this.frame);
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
+        }
+    }
+
+    public void sendDelayedFrame(final CanFrame frame, int delay) {
+        final CanClient client = this;
+        new Timer().schedule(new TimerTask() {          
+            @Override
+            public void run() {
+                try {
+                    client.send(frame);
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                }
+            }
+        }, delay);
     }
 }

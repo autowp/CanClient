@@ -8,6 +8,7 @@ public class FrameResponse extends Response {
     final public static char CODE = 't';
     
     final public static char ID_LENGTH_CHARS = 3;
+    final public static char TIMESTAMP_LENGTH_CHARS = 4;
     
     final public static char ID_MIN = 0;
     final public static char ID_MAX = 0x07FF; // 11bits
@@ -19,25 +20,28 @@ public class FrameResponse extends Response {
     
     protected byte data[];
     
+    protected int timestamp;
+    
     public FrameResponse(byte[] bytes) throws ResponseException, DecoderException
     {
         if (bytes.length < 5) {
             throw new ResponseException("Frame response must be >= 5 bytes long");
         }
         
-        if (bytes.length > 21) {
-            throw new ResponseException("Frame response must be <= 21 bytes long");
-        }
-        
         if (bytes[0] != CODE) {
             throw new ResponseException("Frame response must start with `" + CODE + "` character");
+        }
+        
+        if (bytes.length > 25) {
+            //String hex = new String(Hex.encodeHex(bytes));
+            String hex = new String(bytes);
+            throw new ResponseException("Frame response must be <= 21 bytes long. `" + hex + "`");
         }
         
         String str = (new String(bytes)).substring(1);
         
         String idStr = str.substring(0, 3);
         String dataLengthStr = str.substring(3, 4);
-        String dataStr = str.substring(4);
         
         // extract id
         this.id = Integer.parseInt('0' + idStr, 16);
@@ -59,17 +63,17 @@ public class FrameResponse extends Response {
         }
         
         // extract data
+        String dataStr = str.substring(4, 4 + dataLength * 2);
         this.data = Hex.decodeHex(dataStr.toCharArray());
-        int actualDataLength = this.data.length;
-        if (actualDataLength < DATA_LENGTH_MIN) {
-            throw new ResponseException("Frame response data cannot be < " + DATA_LENGTH_MIN + " bytes long");
-        }
-        if (actualDataLength > DATA_LENGTH_MAX) {
-            throw new ResponseException("Frame response data cannot be > " + DATA_LENGTH_MAX + " bytes long");
-        }
         
-        if (dataLength != actualDataLength) {
-            throw new ResponseException("Frame response dataLength and actual data length not the same");
+        // extract timestamp, if need
+        int lengthWithoutTimestamp = ID_LENGTH_CHARS + 1 + dataLength * 2;
+        int lengthWithTimestamp = lengthWithoutTimestamp + TIMESTAMP_LENGTH_CHARS;
+        if (str.length() == lengthWithTimestamp) {
+            String timestampStr = str.substring(lengthWithoutTimestamp);
+            this.timestamp = Integer.parseInt("0" + timestampStr, 16);
+        } else if (str.length() != lengthWithoutTimestamp) {
+            throw new ResponseException("Unexpected response length");
         }
     }
 

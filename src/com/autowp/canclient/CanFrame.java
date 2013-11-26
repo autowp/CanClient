@@ -14,9 +14,6 @@ public class CanFrame {
     final public static char DATA_LENGTH_MIN = 0;
     final public static char DATA_LENGTH_MAX = 8;
     
-    public static final int ID_IGNITION = 0x036;
-    public static final int ID_VIN = 0x2B6;
-    
     public CanFrame(int id, byte[] data) throws Exception
     {
         if (!isValidId(id)) {

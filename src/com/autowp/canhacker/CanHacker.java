@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Hex;
-
 import com.autowp.canclient.CanAdapter;
 import com.autowp.canclient.CanFrame;
 import com.autowp.canhacker.command.*;
@@ -173,15 +171,12 @@ public class CanHacker extends CanAdapter {
         
         InputStream in = serialPort.getInputStream();
         
-        serialPort.addEventListener(new SerialReader(in, this));
+        serialPort.addEventListener(new SerialReader(in));
         serialPort.notifyOnDataAvailable(true);
         
         this.send(new ResetModeCommand());
         this.send(new BitRateCommand(BitRateCommand.BitRate.S4));
         this.send(new OperationalModeCommand());
-        this.send(new ListenOnlyModeCommand());
-        this.send(new VersionCommand());
-        this.send(new FirmwareVersionCommand());
     }
     
     public void disconnect()
@@ -259,7 +254,7 @@ public class CanHacker extends CanAdapter {
             
             CanFrame frame = new CanFrame(transmitCommand.getId(), transmitCommand.getData());
             
-            this.fireFrameReceivedEvent(frame);
+            this.fireFrameSentEvent(frame);
         }
     }
     
@@ -288,27 +283,19 @@ public class CanHacker extends CanAdapter {
         }
     }
     
-    public void notifyResponseReceived(Response response) throws Exception
-    {
-        fireResponseReceivedEvent(response);
-    }
-    
     /**
      * Handles the input coming from the serial port. A new line character
      * is treated as the end of a block in this example. 
      */
-    public static class SerialReader implements SerialPortEventListener 
+    private class SerialReader implements SerialPortEventListener 
     {
         private InputStream in;
-        private CanHacker canHacker;
         private byte[] buffer = new byte[1024];
         private int bufferPos = 0;
         
-        public SerialReader (InputStream in, CanHacker canHacker)
+        public SerialReader (InputStream in)
         {
-            //System.out.println("SerialReader init");
             this.in = in;
-            this.canHacker = canHacker;
         }
         
         public void serialEvent(SerialPortEvent evt) {
@@ -324,21 +311,17 @@ public class CanHacker extends CanAdapter {
                         }
                         
                         if (dataChar == COMMAND_DELIMITER || dataChar == BELL) {
-                            //System.out.println(buffer);
                             if (bufferPos > 0) {
-                                //System.out.print(bufferPos);
                                 byte[] commandBytes = new byte[bufferPos];
                                 System.arraycopy(buffer, 0, commandBytes, 0, bufferPos);
-                                System.out.println(Hex.encodeHexString(commandBytes));
                                 Response response = Response.fromBytes(commandBytes);
-                                this.canHacker.notifyResponseReceived(response);
+                                fireResponseReceivedEvent(response);
                             }
                             bufferPos = 0;
                         }
                         
                         byte[] commandBytes = new byte[bufferPos];
                         System.arraycopy(buffer, 0, commandBytes, 0, bufferPos);
-                        System.out.println(Hex.encodeHexString(commandBytes));
                     }
                     
                 } catch (Exception e) {
