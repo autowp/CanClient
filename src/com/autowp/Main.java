@@ -193,6 +193,7 @@ public class Main {
     public static Vector<String> getAvailableSerialPorts() {
         Vector<String> h = new Vector<String>();
         //HashSet<CommPortIdentifier> h = new HashSet<CommPortIdentifier>();
+        @SuppressWarnings("rawtypes")
         Enumeration thePorts = CommPortIdentifier.getPortIdentifiers();
         while (thePorts.hasMoreElements()) {
             CommPortIdentifier com = (CommPortIdentifier) thePorts.nextElement();

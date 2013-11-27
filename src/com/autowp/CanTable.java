@@ -30,7 +30,7 @@ public class CanTable extends JTable {
             Class[] columnTypes = new Class[] {
                 String.class, Integer.class, String.class, Object.class
             };
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             public Class getColumnClass(int columnIndex) {
                 return columnTypes[columnIndex];
             }
@@ -51,12 +51,31 @@ public class CanTable extends JTable {
         String idStr = Integer.toHexString(frame.getId()).toUpperCase();
         idStr = StringUtils.leftPad(idStr, 3, '0');
         
+        String dataStr = Hex.encodeHexString(data).toUpperCase();
+        
+        dataStr = StringUtils.join(splitStringEvery(dataStr, 2), ' ');
+        
         model.addRow(
             new Object[] {
                 idStr, 
                 data.length, 
-                Hex.encodeHexString(data).toUpperCase()
+                dataStr
             }
         );
+    }
+    
+    public String[] splitStringEvery(String s, int interval) {
+        int arrayLength = (int) Math.ceil(((s.length() / (double)interval)));
+        String[] result = new String[arrayLength];
+
+        int j = 0;
+        int lastIndex = result.length - 1;
+        for (int i = 0; i < lastIndex; i++) {
+            result[i] = s.substring(j, j + interval);
+            j += interval;
+        } //Add the last bit
+        result[lastIndex] = s.substring(j);
+
+        return result;
     }
 }
