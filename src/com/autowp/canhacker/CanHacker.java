@@ -157,14 +157,6 @@ public class CanHacker extends CanAdapter {
             throw new Exception(this.portName + " is not serial port");
         }
         
-        /*System.out.println("Connect to port " + this.portName);
-        
-        System.out.println(SerialPort.FLOWCONTROL_NONE);
-        System.out.println(this.speed);
-        System.out.println(SerialPort.DATABITS_8);
-        System.out.println(SerialPort.STOPBITS_1);
-        System.out.println(SerialPort.PARITY_NONE);*/
-        
         this.serialPort = (SerialPort)commPort;
         this.serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
         this.serialPort.setSerialPortParams(this.speed, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
@@ -222,8 +214,6 @@ public class CanHacker extends CanAdapter {
         
         String command = c.toString() + COMMAND_DELIMITER;
         
-        //System.out.print(command);
-
         this.serialPort.getOutputStream().write(command.getBytes("ISO-8859-1"));
         
         this.serialPort.getOutputStream().flush();

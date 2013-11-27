@@ -4,6 +4,7 @@
 package com.autowp.canclient;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,6 +18,26 @@ public class CanClient {
     protected CanAdapter adapter;
     
     private List<Timer> timers = new ArrayList<Timer>();
+    
+    private List<FrameSentEventClassListener> frameSentListeners = 
+            new ArrayList<FrameSentEventClassListener>();
+    
+    private List<FrameReceivedEventClassListener> frameReceivedListeners = 
+            new ArrayList<FrameReceivedEventClassListener>();
+    
+    private FrameReceivedEventClassListener frameReceivedEventClassListener = 
+            new FrameReceivedEventClassListener() {
+                public void handleFrameReceivedEvent(FrameReceivedEvent e) {
+                    fireFrameReceivedEvent(e.getFrame());
+                }
+            };
+    
+    private FrameSentEventClassListener frameSentEventClassListener = 
+            new FrameSentEventClassListener() {
+                public void handleFrameSentEvent(FrameSentEvent e) {
+                    fireFrameSentEvent(e.getFrame());
+                }
+            };
     
     public CanClient()
     {
@@ -32,6 +53,8 @@ public class CanClient {
         if (adapter == null) {
             throw new Exception("Adapter not specified");
         }
+        adapter.addEventListener(frameReceivedEventClassListener);
+        adapter.addEventListener(frameSentEventClassListener);
         adapter.connect();
         
         return this;
@@ -39,9 +62,14 @@ public class CanClient {
     
     public CanClient disconnect()
     {
+        this.stopTimers();
+        
         adapter.disconnect();
         
-        return this.stopTimers();
+        adapter.removeEventListener(frameReceivedEventClassListener);
+        adapter.removeEventListener(frameSentEventClassListener);
+        
+        return this;
     }
     
     public CanClient stopTimers()
@@ -74,20 +102,38 @@ public class CanClient {
         this.adapter = adapter;
     }
     
-    public void addEventListener(FrameSentEventClassListener listener) {
-        adapter.addEventListener(listener);
+    public synchronized void addEventListener(FrameSentEventClassListener listener) {
+        frameSentListeners.add(listener);
     }
     
-    public void removeEventListener(FrameSentEventClassListener listener){
-        adapter.removeEventListener(listener);
+    public synchronized void removeEventListener(FrameSentEventClassListener listener){
+        frameSentListeners.remove(listener);
     }
     
-    public void addEventListener(FrameReceivedEventClassListener listener) {
-        adapter.addEventListener(listener);
+    protected synchronized void fireFrameSentEvent(CanFrame frame)
+    {
+        FrameSentEvent event = new FrameSentEvent(this, frame);
+        Iterator<FrameSentEventClassListener> i = frameSentListeners.iterator();
+        while(i.hasNext())  {
+            ((FrameSentEventClassListener) i.next()).handleFrameSentEvent(event);
+        }
     }
     
-    public void removeEventListener(FrameReceivedEventClassListener listener){
-        adapter.removeEventListener(listener);
+    public synchronized void addEventListener(FrameReceivedEventClassListener listener) {
+        frameReceivedListeners.add(listener);
+    }
+    
+    public synchronized void removeEventListener(FrameReceivedEventClassListener listener){
+        frameReceivedListeners.remove(listener);
+    }
+    
+    protected synchronized void fireFrameReceivedEvent(CanFrame frame)
+    {
+        FrameReceivedEvent event = new FrameReceivedEvent(this, frame);
+        Iterator<FrameReceivedEventClassListener> i = frameReceivedListeners.iterator();
+        while(i.hasNext())  {
+            ((FrameReceivedEventClassListener) i.next()).handleFrameReceivedEvent(event);
+        }
     }
     
     public void addTimerTaskFrame(CanFrame frame, long delay, long period)

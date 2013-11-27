@@ -25,7 +25,6 @@ public class CanComfort {
         }
         
         String lastDigits = vin.substring(length - VIN_LENGTH, length);
-        System.out.println(lastDigits);
         return new CanFrame(CanComfort.ID_VIN, lastDigits.getBytes("ISO-8859-1"));
     }
     

@@ -8,7 +8,9 @@ import gnu.io.PortInUseException;
 import java.awt.EventQueue;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -54,8 +56,10 @@ public class Main {
     private final Action connectAction = new ConnectAction();
     private final Action disconnectAction = new DisconnectAction();
     private final Action exitAction = new ExitAction();
+    private final Action createFilterAction = new CreateFilterAction();
     private JTextField vinTextField;
     private JTextField textField;
+    private ArrayList<FilterFrame> filterFrames = new ArrayList<FilterFrame>();
 
     /**
      * Launch the application.
@@ -143,9 +147,6 @@ public class Main {
         textField.setEditable(false);
         monitor.add(textField);
         textField.setColumns(10);
-        
-        
-        
 
         
         JMenuBar menuBar = new JMenuBar();
@@ -162,6 +163,12 @@ public class Main {
         
         JMenuItem mntmExit = new JMenuItem(exitAction);
         mnNewMenu.add(mntmExit);
+        
+        JMenu mnNewMenu_1 = new JMenu("Filter");
+        menuBar.add(mnNewMenu_1);
+        
+        JMenuItem createFilterMenuItem = new JMenuItem(createFilterAction);
+        mnNewMenu_1.add(createFilterMenuItem);
 
         /*
         connectButton.addActionListener(new ActionListener() {
@@ -290,6 +297,26 @@ public class Main {
         }
         public void actionPerformed(ActionEvent e) {
             frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        }
+    }
+    
+    @SuppressWarnings("serial")
+    private class CreateFilterAction extends AbstractAction {
+        public CreateFilterAction() {
+            putValue(NAME, "Create filter");
+            putValue(SHORT_DESCRIPTION, "Create filter");
+        }
+        public void actionPerformed(ActionEvent e) {
+            final FilterFrame filterFrame = new FilterFrame(client);
+            filterFrames.add(filterFrame);
+            
+            filterFrame.setVisible(true);
+            
+            filterFrame.addWindowListener(new WindowAdapter(){
+                public void windowClosed(WindowEvent e){
+                    filterFrames.remove(filterFrame);
+                }
+            });
         }
     }
 }
