@@ -13,41 +13,31 @@ public abstract class CanAdapter {
     
     public abstract boolean isConnected();
     
-    private List<FrameSentEventClassListener> frameSentListeners = new ArrayList<FrameSentEventClassListener>();
+    private List<CanFrameEventClassListener> canFrameEventListeners = new ArrayList<CanFrameEventClassListener>();
     
-    private List<FrameReceivedEventClassListener> frameReceivedListeners = new ArrayList<FrameReceivedEventClassListener>();
-    
-    public synchronized void addEventListener(FrameSentEventClassListener listener) {
-        frameSentListeners.add(listener);
+    public synchronized void addEventListener(CanFrameEventClassListener listener) {
+        canFrameEventListeners.add(listener);
     }
     
-    public synchronized void removeEventListener(FrameSentEventClassListener listener){
-        frameSentListeners.remove(listener);
+    public synchronized void removeEventListener(CanFrameEventClassListener listener){
+        canFrameEventListeners.remove(listener);
     }
     
     protected synchronized void fireFrameSentEvent(CanFrame frame)
     {
-        FrameSentEvent event = new FrameSentEvent(this, frame);
-        Iterator<FrameSentEventClassListener> i = frameSentListeners.iterator();
+        CanFrameEvent event = new CanFrameEvent(this, frame);
+        Iterator<CanFrameEventClassListener> i = canFrameEventListeners.iterator();
         while(i.hasNext())  {
-            ((FrameSentEventClassListener) i.next()).handleFrameSentEvent(event);
+            ((CanFrameEventClassListener) i.next()).handleCanFrameSentEvent(event);
         }
-    }
-    
-    public synchronized void addEventListener(FrameReceivedEventClassListener listener) {
-        frameReceivedListeners.add(listener);
-    }
-    
-    public synchronized void removeEventListener(FrameReceivedEventClassListener listener){
-        frameReceivedListeners.remove(listener);
     }
     
     protected synchronized void fireFrameReceivedEvent(CanFrame frame)
     {
-        FrameReceivedEvent event = new FrameReceivedEvent(this, frame);
-        Iterator<FrameReceivedEventClassListener> i = frameReceivedListeners.iterator();
+        CanFrameEvent event = new CanFrameEvent(this, frame);
+        Iterator<CanFrameEventClassListener> i = canFrameEventListeners.iterator();
         while(i.hasNext())  {
-            ((FrameReceivedEventClassListener) i.next()).handleFrameReceivedEvent(event);
+            ((CanFrameEventClassListener) i.next()).handleCanFrameReceivedEvent(event);
         }
     }
 }

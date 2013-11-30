@@ -2,16 +2,11 @@ package com.autowp.canclient;
 
 import java.util.EventObject;
 
-public class FrameReceivedEvent extends EventObject {
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    
+@SuppressWarnings("serial")
+public class CanFrameEvent extends EventObject {
     protected CanFrame frame;
 
-    public FrameReceivedEvent(Object source, CanFrame frame) {
+    public CanFrameEvent(Object source, CanFrame frame) {
         super(source);
         this.frame = frame;
     }

@@ -13,8 +13,12 @@ import javax.swing.table.DefaultTableModel;
 
 import com.autowp.canclient.CanClient;
 import com.autowp.canclient.CanFrame;
-import com.autowp.canclient.FrameReceivedEvent;
-import com.autowp.canclient.FrameReceivedEventClassListener;
+import com.autowp.canclient.CanFrameEvent;
+import com.autowp.canclient.CanFrameEventClassListener;
+import com.autowp.canclient.CanMessage;
+import com.autowp.canclient.CanMessageEvent;
+import com.autowp.canclient.CanMessageEventClassListener;
+
 import javax.swing.JTextField;
 import javax.swing.JButton;
 
@@ -28,22 +32,16 @@ import javax.swing.ListSelectionModel;
 
 
 @SuppressWarnings("serial")
-public class FilterFrame extends JFrame {
+public class CanFilterFrame extends JFrame {
 
     private JPanel contentPane;
-    private CanTable table;
+    private CanFrameTable table;
     private CanFilter filter = new CanFilter();
     
-    private FrameReceivedEventClassListener listener = new FrameReceivedEventClassListener() {
-        public void handleFrameReceivedEvent(FrameReceivedEvent e) {
-            if (filter != null) {
-                CanFrame frame = e.getFrame();
-                if (filter.match(frame)) {
-                    table.addCanFrame(frame);
-                }
-            }
-        }
-    };
+    private CanFrameEventClassListener frameListener;
+    
+    private CanMessageEventClassListener messageListener;
+    
     private JTextField textField;
     private JButton applyFilterButton;
     private JPanel panel;
@@ -54,7 +52,7 @@ public class FilterFrame extends JFrame {
     /**
      * Create the frame.
      */
-    public FilterFrame(final CanClient client) {
+    public CanFilterFrame(final CanClient client, boolean listenMessageInstedOfFrames) {
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 450, 300);
         contentPane = new JPanel();
@@ -62,7 +60,7 @@ public class FilterFrame extends JFrame {
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
         
-        table = new CanTable();
+        table = new CanFrameTable();
         table.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         table.setEnabled(true);
         
@@ -144,18 +142,78 @@ public class FilterFrame extends JFrame {
         });
         panel.add(clearButton);
         
-        client.addEventListener(listener);
-        
-        this.addWindowListener(new WindowAdapter(){
-            public void windowClosing(WindowEvent e){
-                client.removeEventListener(listener);
-            }
-        });
+        if (listenMessageInstedOfFrames) {
+            client.addEventListener(getMessageListener());
+            
+            this.addWindowListener(new WindowAdapter(){
+                public void windowClosing(WindowEvent e){
+                    client.removeEventListener(getMessageListener());
+                }
+            });
+        } else {
+            client.addEventListener(getFrameListener());
+            
+            this.addWindowListener(new WindowAdapter(){
+                public void windowClosing(WindowEvent e){
+                    client.removeEventListener(getFrameListener());
+                }
+            });
+        }
     }
 
     protected void clearRows()
     {
         DefaultTableModel dtm = (DefaultTableModel) table.getModel();
         dtm.setRowCount(0);
+    }
+    
+    protected CanFrameEventClassListener getFrameListener()
+    {
+        if (frameListener == null) {
+            frameListener = new CanFrameEventClassListener() {
+                @Override
+                public void handleCanFrameReceivedEvent(CanFrameEvent e) {
+                    if (filter != null) {
+                        CanFrame frame = e.getFrame();
+                        if (filter.match(frame)) {
+                            table.addCanFrame(frame);
+                        }
+                    }
+                }
+    
+                @Override
+                public void handleCanFrameSentEvent(CanFrameEvent e) {
+                    // TODO Auto-generated method stub
+                    
+                }
+            };
+        }
+        
+        return frameListener;
+    }
+    
+    protected CanMessageEventClassListener getMessageListener()
+    {
+        if (messageListener == null) {
+            messageListener = new CanMessageEventClassListener() {
+    
+                @Override
+                public void handleCanMessageReceivedEvent(CanMessageEvent e) {
+                    if (filter != null) {
+                        CanMessage message = e.getMessage();
+                        if (filter.match(message)) {
+                            table.addCanMessage(message);
+                        }
+                    }
+                }
+    
+                @Override
+                public void handleCanMessageSentEvent(CanMessageEvent e) {
+                    // TODO Auto-generated method stub
+                    
+                }
+            };
+        }
+        return messageListener;
     }
 }

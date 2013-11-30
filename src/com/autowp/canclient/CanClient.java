@@ -3,11 +3,16 @@
  */
 package com.autowp.canclient;
 
+import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.apache.commons.codec.binary.Hex;
 
 
 /**
@@ -17,27 +22,22 @@ import java.util.TimerTask;
 public class CanClient {
     protected CanAdapter adapter;
     
+    private static final int PCITYPE_SINGLE_FRAME = 0;
+    private static final int PCITYPE_FIRST_FRAME = 1;
+    private static final int PCITYPE_CONSECUTIVE_FRAME = 2;
+    private static final int PCITYPE_FLOW_CONTROL_FRAME = 3;
+    
     private List<Timer> timers = new ArrayList<Timer>();
     
-    private List<FrameSentEventClassListener> frameSentListeners = 
-            new ArrayList<FrameSentEventClassListener>();
+    private List<CanFrameEventClassListener> canFrameEventListeners = 
+            new ArrayList<CanFrameEventClassListener>();
     
-    private List<FrameReceivedEventClassListener> frameReceivedListeners = 
-            new ArrayList<FrameReceivedEventClassListener>();
-    
-    private FrameReceivedEventClassListener frameReceivedEventClassListener = 
-            new FrameReceivedEventClassListener() {
-                public void handleFrameReceivedEvent(FrameReceivedEvent e) {
-                    fireFrameReceivedEvent(e.getFrame());
-                }
-            };
-    
-    private FrameSentEventClassListener frameSentEventClassListener = 
-            new FrameSentEventClassListener() {
-                public void handleFrameSentEvent(FrameSentEvent e) {
-                    fireFrameSentEvent(e.getFrame());
-                }
-            };
+    private CanFrameEventClassListener canFrameEventClassListener = 
+            new CanClientFrameEventClassListener();
+            
+    private List<CanMessageEventClassListener> canMessageEventListeners = 
+            new ArrayList<CanMessageEventClassListener>();
+
     
     public CanClient()
     {
@@ -53,8 +53,7 @@ public class CanClient {
         if (adapter == null) {
             throw new Exception("Adapter not specified");
         }
-        adapter.addEventListener(frameReceivedEventClassListener);
-        adapter.addEventListener(frameSentEventClassListener);
+        adapter.addEventListener(canFrameEventClassListener);
         adapter.connect();
         
         return this;
@@ -66,8 +65,7 @@ public class CanClient {
         
         adapter.disconnect();
         
-        adapter.removeEventListener(frameReceivedEventClassListener);
-        adapter.removeEventListener(frameSentEventClassListener);
+        adapter.removeEventListener(canFrameEventClassListener);
         
         return this;
     }
@@ -102,37 +100,55 @@ public class CanClient {
         this.adapter = adapter;
     }
     
-    public synchronized void addEventListener(FrameSentEventClassListener listener) {
-        frameSentListeners.add(listener);
+    public synchronized void addEventListener(CanFrameEventClassListener listener) {
+        canFrameEventListeners.add(listener);
     }
     
-    public synchronized void removeEventListener(FrameSentEventClassListener listener){
-        frameSentListeners.remove(listener);
+    public synchronized void removeEventListener(CanFrameEventClassListener listener){
+        canFrameEventListeners.remove(listener);
     }
     
-    protected synchronized void fireFrameSentEvent(CanFrame frame)
+    protected synchronized void fireCanFrameSentEvent(CanFrame frame)
     {
-        FrameSentEvent event = new FrameSentEvent(this, frame);
-        Iterator<FrameSentEventClassListener> i = frameSentListeners.iterator();
+        CanFrameEvent event = new CanFrameEvent(this, frame);
+        Iterator<CanFrameEventClassListener> i = canFrameEventListeners.iterator();
         while(i.hasNext())  {
-            ((FrameSentEventClassListener) i.next()).handleFrameSentEvent(event);
+            ((CanFrameEventClassListener) i.next()).handleCanFrameSentEvent(event);
         }
     }
     
-    public synchronized void addEventListener(FrameReceivedEventClassListener listener) {
-        frameReceivedListeners.add(listener);
-    }
-    
-    public synchronized void removeEventListener(FrameReceivedEventClassListener listener){
-        frameReceivedListeners.remove(listener);
-    }
-    
-    protected synchronized void fireFrameReceivedEvent(CanFrame frame)
+    protected synchronized void fireCanFrameReceivedEvent(CanFrame frame)
     {
-        FrameReceivedEvent event = new FrameReceivedEvent(this, frame);
-        Iterator<FrameReceivedEventClassListener> i = frameReceivedListeners.iterator();
+        CanFrameEvent event = new CanFrameEvent(this, frame);
+        Iterator<CanFrameEventClassListener> i = canFrameEventListeners.iterator();
         while(i.hasNext())  {
-            ((FrameReceivedEventClassListener) i.next()).handleFrameReceivedEvent(event);
+            ((CanFrameEventClassListener) i.next()).handleCanFrameReceivedEvent(event);
+        }
+    }
+    
+    public synchronized void addEventListener(CanMessageEventClassListener listener) {
+        canMessageEventListeners.add(listener);
+    }
+    
+    public synchronized void removeEventListener(CanMessageEventClassListener listener){
+        canMessageEventListeners.remove(listener);
+    }
+    
+    protected synchronized void fireCanMessageSentEvent(CanMessage message)
+    {
+        CanMessageEvent event = new CanMessageEvent(this, message);
+        Iterator<CanMessageEventClassListener> i = canMessageEventListeners.iterator();
+        while(i.hasNext())  {
+            ((CanMessageEventClassListener) i.next()).handleCanMessageSentEvent(event);
+        }
+    }
+    
+    protected synchronized void fireCanMessageReceivedEvent(CanMessage message)
+    {
+        CanMessageEvent event = new CanMessageEvent(this, message);
+        Iterator<CanMessageEventClassListener> i = canMessageEventListeners.iterator();
+        while(i.hasNext())  {
+            ((CanMessageEventClassListener) i.next()).handleCanMessageReceivedEvent(event);
         }
     }
     
@@ -175,5 +191,140 @@ public class CanClient {
                 }
             }
         }, delay);
+    }
+    
+    private class CanClientFrameEventClassListener implements CanFrameEventClassListener {
+        HashMap<Integer, MultiFrameBuffer> multiframeBuffers = new HashMap<Integer, MultiFrameBuffer>();
+        
+        public void handleCanFrameSentEvent(CanFrameEvent e) {
+            CanFrame frame = e.getFrame();
+            fireCanFrameSentEvent(frame);
+            
+            
+            
+        }
+        public void handleCanFrameReceivedEvent(CanFrameEvent e) {
+            CanFrame frame = e.getFrame();
+            fireCanFrameReceivedEvent(frame);
+            
+            try {
+                int arbID = frame.getId();
+                // check is multiFrame
+                if (arbID == 0x125) { // TODO: proper check for multipart
+                    
+                    byte[] data = frame.getData();
+                    if (data.length <= 0) {
+                        throw new Exception("Unexpected zero size can message");
+                    }
+                    
+                    int pciType = (data[0] & 0xF0) >>> 4;
+                    
+                    switch (pciType) {
+                        case PCITYPE_SINGLE_FRAME: {
+                            int dataLength = data[0] & 0x0F;
+                            byte[] messageData = new byte[dataLength];
+                            System.arraycopy(data, 1, messageData, 0, dataLength);
+                            fireCanMessageReceivedEvent(
+                                new CanMessage(arbID, messageData)
+                            );
+                            break;
+                        }
+                            
+                        case PCITYPE_FIRST_FRAME: {
+                            int dataLengthHigh = data[0] & 0x0F;
+                            int dataLengthLow = (int) data[1] & 0xFF;
+                            
+                            int dataLength = (dataLengthHigh << 8) + dataLengthLow;
+                            
+                            byte[] messageData = new byte[data.length - 2];
+                            System.arraycopy(data, 2, messageData, 0, data.length - 2);
+                            
+                            MultiFrameBuffer buffer = new MultiFrameBuffer(dataLength);
+                            buffer.append(messageData, 0);
+                            
+                            multiframeBuffers.put(arbID, buffer);
+                            break;
+                        }
+                            
+                        case PCITYPE_CONSECUTIVE_FRAME: {
+                           
+                            int index = data[0] & 0x0F;
+                            byte[] messageData = new byte[data.length - 1];
+                            System.arraycopy(data, 1, messageData, 0, data.length - 1);
+                            
+                            MultiFrameBuffer buffer = multiframeBuffers.get(arbID);
+                            if (buffer == null) {
+                                throw new Exception("Buffer for " + arbID + " not found");
+                            }
+                            
+                            buffer.append(messageData, index);
+                            
+                            if (buffer.isComplete()) {
+                                fireCanMessageReceivedEvent(
+                                    new CanMessage(arbID, buffer.getData())
+                                );
+                                multiframeBuffers.remove(arbID);
+                            }
+                            
+                            break;
+                        }
+                            
+                        case PCITYPE_FLOW_CONTROL_FRAME:
+                            // TODO: 
+                            break;
+                            
+                        default:
+                            throw new Exception("Unexpected PCITYPE " + pciType);
+                    }
+                            
+                } else {
+                    fireCanMessageReceivedEvent(
+                        new CanMessage(arbID, frame.getData())
+                    );
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    };
+    
+    protected class MultiFrameBuffer {
+        int currentLength;
+        int lastCounter;
+        byte[] buffer;
+        
+        public MultiFrameBuffer(int expectedLength)
+        {
+            this.currentLength = 0;
+            this.buffer = new byte[expectedLength];
+            this.lastCounter = -1; // initial value to match first 0
+        }
+        
+        public void append(byte[] data, int cycleCounter) throws Exception
+        {
+            if (currentLength + data.length > buffer.length) {
+                throw new Exception("Buffer overflow detected");
+            }
+            
+            if (cycleCounter != (lastCounter + 1) % 16) {
+                throw new Exception("Cycle counter breaks from " + lastCounter + " to " + cycleCounter);
+            }
+            
+            System.arraycopy(data, 0, buffer, currentLength, data.length);
+            
+            currentLength += data.length;
+            
+            lastCounter = cycleCounter;
+        }
+        
+        public boolean isComplete()
+        {
+            return buffer.length == currentLength;
+        }
+        
+        public byte[] getData()
+        {
+            return buffer;
+        }
     }
 }

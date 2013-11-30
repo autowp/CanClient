@@ -15,16 +15,17 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 import com.autowp.canclient.CanClient;
-import com.autowp.canclient.FrameReceivedEvent;
-import com.autowp.canclient.FrameReceivedEventClassListener;
-import com.autowp.canclient.FrameSentEvent;
-import com.autowp.canclient.FrameSentEventClassListener;
+import com.autowp.canclient.CanFrameEvent;
+import com.autowp.canclient.CanFrameEventClassListener;
+import com.autowp.canclient.CanMessageEvent;
+import com.autowp.canclient.CanMessageEventClassListener;
 import com.autowp.canhacker.CanHacker;
 import com.autowp.canhacker.ResponseReceivedEvent;
 import com.autowp.canhacker.ResponseReceivedEventClassListener;
 import com.autowp.canhacker.CommandSendEvent;
 import com.autowp.canhacker.CommandSendEventClassListener;
 import com.autowp.peugeot.CanComfort;
+import com.autowp.peugeot.DisplayDialog;
 
 import javax.swing.JFrame;
 import javax.swing.DefaultComboBoxModel;
@@ -39,7 +40,6 @@ import javax.swing.Action;
 import javax.swing.JToolBar;
 import javax.swing.JTextField;
 import javax.swing.JTabbedPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 public class Main {
@@ -49,8 +49,11 @@ public class Main {
     private CanClient client;
     
     private JTextArea canhackerLogTextArea;
-    private CanTable canSentTable;
-    private CanTable canReceiveTable;
+    private CanFrameTable canSentTable;
+    private CanFrameTable canReceiveTable;
+    private CanFrameTable canMessageReceiveTable;
+    
+    private DisplayDialog displayDialog;
     
     private JComboBox<String> portNameBox;
     private final Action connectAction = new ConnectAction();
@@ -58,8 +61,9 @@ public class Main {
     private final Action exitAction = new ExitAction();
     private final Action createFilterAction = new CreateFilterAction();
     private JTextField vinTextField;
-    private JTextField textField;
-    private ArrayList<FilterFrame> filterFrames = new ArrayList<FilterFrame>();
+    private ArrayList<CanFilterFrame> filterFrames = new ArrayList<CanFilterFrame>();
+    private final Action showDisplayAction = new ShowDisplayAction();
+    private final Action createMessageFilterAction = new CreateMessageFilterAction();
 
     /**
      * Launch the application.
@@ -130,23 +134,20 @@ public class Main {
         
         
         
-        canSentTable = new CanTable();
+        canSentTable = new CanFrameTable();
         canSentTable.setEnabled(true);
         JScrollPane canSentScrollPane = new JScrollPane(canSentTable);
         tabbedPane.addTab("CAN sent", null, canSentScrollPane, null);
         
-        canReceiveTable = new CanTable();
+        canReceiveTable = new CanFrameTable();
         canReceiveTable.setEnabled(true);
         JScrollPane canReceiveScrollPane = new JScrollPane(canReceiveTable);
-        tabbedPane.addTab("CAN received", null, canReceiveScrollPane, null);
+        tabbedPane.addTab("CAN rcvd frame", null, canReceiveScrollPane, null);
         
-        JPanel monitor = new JPanel();
-        tabbedPane.addTab("Display", null, monitor, null);
-        
-        textField = new JTextField();
-        textField.setEditable(false);
-        monitor.add(textField);
-        textField.setColumns(10);
+        canMessageReceiveTable = new CanFrameTable();
+        canMessageReceiveTable.setEnabled(true);
+        JScrollPane canMessageReceiveScrollPane = new JScrollPane(canMessageReceiveTable);
+        tabbedPane.addTab("CAN rcvd message", null, canMessageReceiveScrollPane, null);
 
         
         JMenuBar menuBar = new JMenuBar();
@@ -164,11 +165,20 @@ public class Main {
         JMenuItem mntmExit = new JMenuItem(exitAction);
         mnNewMenu.add(mntmExit);
         
-        JMenu mnNewMenu_1 = new JMenu("Filter");
+        JMenu mnNewMenu_1 = new JMenu("Tools");
         menuBar.add(mnNewMenu_1);
         
         JMenuItem createFilterMenuItem = new JMenuItem(createFilterAction);
+        createFilterMenuItem.setText("Create frame filter");
         mnNewMenu_1.add(createFilterMenuItem);
+        
+        JMenuItem mntmCreateMessageFilter = new JMenuItem("Create message filter");
+        mntmCreateMessageFilter.setAction(createMessageFilterAction);
+        mnNewMenu_1.add(mntmCreateMessageFilter);
+        
+        JMenuItem displayMenuItem = new JMenuItem("Show display");
+        displayMenuItem.setAction(showDisplayAction);
+        mnNewMenu_1.add(displayMenuItem);
 
         /*
         connectButton.addActionListener(new ActionListener() {
@@ -242,14 +252,24 @@ public class Main {
                 
                 client.setAdapter(canHacker);
                 
-                client.addEventListener(new FrameReceivedEventClassListener() {
-                    public void handleFrameReceivedEvent(FrameReceivedEvent e) {
+                client.addEventListener(new CanFrameEventClassListener() {
+                    public void handleCanFrameReceivedEvent(CanFrameEvent e) {
                         canReceiveTable.addCanFrame(e.getFrame());
                     }
-                });
-                client.addEventListener(new FrameSentEventClassListener() {
-                    public void handleFrameSentEvent(FrameSentEvent e) {
+                    public void handleCanFrameSentEvent(CanFrameEvent e) {
                         canSentTable.addCanFrame(e.getFrame());
+                    }
+                });
+                
+                client.addEventListener(new CanMessageEventClassListener() {
+                    @Override
+                    public void handleCanMessageReceivedEvent(CanMessageEvent e) {
+                        canMessageReceiveTable.addCanMessage(e.getMessage());
+                    }
+                    @Override
+                    public void handleCanMessageSentEvent(CanMessageEvent e) {
+                        // TODO Auto-generated method stub
+                        
                     }
                 });
                 
@@ -308,7 +328,40 @@ public class Main {
             putValue(SHORT_DESCRIPTION, "Create filter");
         }
         public void actionPerformed(ActionEvent e) {
-            final FilterFrame filterFrame = new FilterFrame(client);
+            final CanFilterFrame filterFrame = new CanFilterFrame(client, false);
+            filterFrames.add(filterFrame);
+            
+            filterFrame.setVisible(true);
+            
+            filterFrame.addWindowListener(new WindowAdapter(){
+                public void windowClosed(WindowEvent e){
+                    filterFrames.remove(filterFrame);
+                }
+            });
+        }
+    }
+    @SuppressWarnings("serial")
+    private class ShowDisplayAction extends AbstractAction {
+        public ShowDisplayAction() {
+            putValue(NAME, "Show display");
+            putValue(SHORT_DESCRIPTION, "Show display");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (displayDialog == null) {
+                displayDialog = new DisplayDialog(client);
+            }
+            displayDialog.setVisible(true);
+            displayDialog.toFront();
+        }
+    }
+    @SuppressWarnings("serial")
+    private class CreateMessageFilterAction extends AbstractAction {
+        public CreateMessageFilterAction() {
+            putValue(NAME, "Create message filter");
+            putValue(SHORT_DESCRIPTION, "Create message filter");
+        }
+        public void actionPerformed(ActionEvent e) {
+            final CanFilterFrame filterFrame = new CanFilterFrame(client, true);
             filterFrames.add(filterFrame);
             
             filterFrame.setVisible(true);

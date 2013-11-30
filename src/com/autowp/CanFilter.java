@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.autowp.canclient.CanFrame;
+import com.autowp.canclient.CanMessage;
 
 public class CanFilter {
     
@@ -66,12 +67,12 @@ public class CanFilter {
         return this;
     }
     
-    public boolean match(CanFrame frame)
+    protected boolean matchId(int id)
     {
         boolean result = false;
         
         if (mode != null) {
-            boolean found = list.indexOf(frame.getId()) != -1; 
+            boolean found = list.indexOf(id) != -1; 
             
             switch (mode) {
                 case MATCH:
@@ -85,6 +86,16 @@ public class CanFilter {
         }
         
         return result;
+    }
+    
+    public boolean match(CanFrame frame)
+    {
+        return matchId(frame.getId());
+    }
+    
+    public boolean match(CanMessage message)
+    {
+        return matchId(message.getId());
     }
     
     public void readFromStream(FileInputStream in) throws Exception

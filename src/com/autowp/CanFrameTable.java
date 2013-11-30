@@ -9,11 +9,12 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 
 import com.autowp.canclient.CanFrame;
+import com.autowp.canclient.CanMessage;
 
 
 @SuppressWarnings("serial")
-public class CanTable extends JTable {
-    public CanTable()
+public class CanFrameTable extends JTable {
+    public CanFrameTable()
     {
         this.setRowSelectionAllowed(true);
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -64,6 +65,26 @@ public class CanTable extends JTable {
         );
     }
     
+    public void addCanMessage(CanMessage message)
+    {
+        DefaultTableModel model = (DefaultTableModel)this.getModel();
+        byte[] data = message.getData();
+        String idStr = Integer.toHexString(message.getId()).toUpperCase();
+        idStr = StringUtils.leftPad(idStr, 3, '0');
+        
+        String dataStr = Hex.encodeHexString(data).toUpperCase();
+        
+        dataStr = StringUtils.join(splitStringEvery(dataStr, 2), ' ');
+        
+        model.addRow(
+            new Object[] {
+                idStr, 
+                data.length, 
+                dataStr
+            }
+        );
+    }
+    
     public String[] splitStringEvery(String s, int interval) {
         int arrayLength = (int) Math.ceil(((s.length() / (double)interval)));
         String[] result = new String[arrayLength];
@@ -74,7 +95,9 @@ public class CanTable extends JTable {
             result[i] = s.substring(j, j + interval);
             j += interval;
         } //Add the last bit
-        result[lastIndex] = s.substring(j);
+        if (lastIndex >= 0) {
+            result[lastIndex] = s.substring(j);
+        }
 
         return result;
     }

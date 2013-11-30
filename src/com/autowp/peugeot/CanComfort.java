@@ -6,11 +6,15 @@ import com.autowp.canclient.CanFrame;
 public class CanComfort {
     public static final int ID_IGNITION = 0x036;
     public static final int ID_VIN = 0x2B6;
+    public static final int ID_TRACK_LIST = 0x125;
     
     public static final int IGNITION_PERIOD = 200;
     
     public static final int VIN_DELAY = 300;
     public static final int VIN_LENGTH = 8;
+    
+    public static final int TRACK_LIST_TRACK_AUTHOR_LENGTH = 20;
+    public static final int TRACK_LIST_TRACK_NAME_LENGTH = 20;
     
     public static CanFrame ignitionFrame() throws Exception
     {
