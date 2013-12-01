@@ -127,9 +127,13 @@ public class CanFilterFrame extends JFrame {
         applyFilterButton = new JButton("Apply");
         applyFilterButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                int id = Integer.parseInt(textField.getText(), 16);
-                filter.clear().setMode(CanFilter.Mode.MATCH).add(id);
-                clearRows();
+                try {
+                    int id = Integer.parseInt(textField.getText(), 16);
+                    filter.clear().setMode(CanFilter.Mode.MATCH).add(id);
+                    clearRows();
+                } catch (NumberFormatException e) {
+                    e.printStackTrace(System.err);
+                }
             }
         });
         panel.add(applyFilterButton);

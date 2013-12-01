@@ -209,9 +209,12 @@ public class TrackList extends Component {
                         // track list state data and possible track names
                         int tracksCount = (int)data[1] & 0xFF; 
                         boolean enableTrackList = (data[3] & 0xE0) == 0x40;
+                        boolean trackListOffsetChanged = (data[3] & 0x10) == 0x10;
                         
-                        int listOffset = data[2] & 0x1F;
+                        int listOffset = (int)data[2] & 0xFF;
                         int currentOffset = data[3] & 0x0F;
+                        
+                        
                         
                         setTracksCount(tracksCount);
                         setOffsets(listOffset, currentOffset);
@@ -254,8 +257,21 @@ public class TrackList extends Component {
                                     trackName = new String(data, currentNamesOffset, lengthOfName, CanComfort.charset);
                                     currentNamesOffset += CanComfort.TRACK_LIST_TRACK_NAME_LENGTH;
                                 }
-                            
-                                this.setTrack(listOffset + i, trackAuthor, trackName);
+                                
+                                int trackNumber;
+                                if (trackListOffsetChanged) {
+                                    if (currentOffset == 0) {
+                                        trackNumber = listOffset + i;
+                                    } else if (currentOffset == LINES-1) {
+                                        trackNumber = listOffset + currentOffset - i;
+                                    } else {
+                                        throw new DisplayException("Unexpected state of list");
+                                    }
+                                } else {
+                                    trackNumber = listOffset + i;
+                                }
+                                
+                                this.setTrack(trackNumber, trackAuthor, trackName);
                             }
                         }
                         
