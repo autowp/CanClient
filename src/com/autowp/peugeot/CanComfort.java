@@ -10,6 +10,8 @@ import com.autowp.canclient.CanFrame;
 import com.autowp.canclient.CanFrameException;
 
 public class CanComfort {
+    public static final int SPEED = 125; // kbit
+    
     public static final int ID_IGNITION = 0x036;
     public static final int ID_VIN = 0x2B6;
     public static final int ID_TRACK_LIST = 0x125;

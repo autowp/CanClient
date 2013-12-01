@@ -12,6 +12,7 @@ import com.autowp.canclient.CanAdapterException;
 import com.autowp.canclient.CanFrame;
 import com.autowp.canclient.CanFrameException;
 import com.autowp.canhacker.command.*;
+import com.autowp.canhacker.command.BitRateCommand.BitRate;
 import com.autowp.canhacker.response.*;
 
 import gnu.io.CommPort;
@@ -176,8 +177,41 @@ public class CanHacker extends CanAdapter {
             serialPort.addEventListener(new SerialReader(in));
             serialPort.notifyOnDataAvailable(true);
             
+            BitRate busSpeed;
+            switch (this.specs.getSpeed()) {
+                case 10:
+                    busSpeed = BitRateCommand.BitRate.S0;
+                    break;
+                case 20:
+                    busSpeed = BitRateCommand.BitRate.S1;
+                    break;
+                case 50:
+                    busSpeed = BitRateCommand.BitRate.S2;
+                    break;
+                case 100:
+                    busSpeed = BitRateCommand.BitRate.S3;
+                    break;
+                case 125:
+                    busSpeed = BitRateCommand.BitRate.S4;
+                    break;
+                case 250:
+                    busSpeed = BitRateCommand.BitRate.S5;
+                    break;
+                case 500:
+                    busSpeed = BitRateCommand.BitRate.S6;
+                    break;
+                case 800:
+                    busSpeed = BitRateCommand.BitRate.S7;
+                    break;
+                case 1000:
+                    busSpeed = BitRateCommand.BitRate.S8;
+                    break;
+                default:
+                    throw new CanHackerException("Unsupported bus speed");
+            }
+            
             this.send(new ResetModeCommand());
-            this.send(new BitRateCommand(BitRateCommand.BitRate.S4));
+            this.send(new BitRateCommand(busSpeed));
             this.send(new OperationalModeCommand());
         } catch (NoSuchPortException | PortInUseException | UnsupportedCommOperationException | IOException | TooManyListenersException e) {
             throw new CanAdapterException("Port error: " + e.getMessage());

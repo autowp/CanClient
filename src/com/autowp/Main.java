@@ -26,6 +26,7 @@ import com.autowp.canhacker.CommandSendEvent;
 import com.autowp.canhacker.CommandSendEventClassListener;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.CanComfortException;
+import com.autowp.peugeot.CanComfortSpecs;
 import com.autowp.peugeot.DisplayDialog;
 
 import javax.swing.JFrame;
@@ -104,7 +105,7 @@ public class Main {
         final DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(comboBoxItems);
         model.setSelectedItem("COM3");
         
-        this.client = new CanClient();
+        this.client = new CanClient(new CanComfortSpecs());
         
         JToolBar toolBar = new JToolBar();
         portNameBox = new JComboBox<String>(model);

@@ -15,11 +15,15 @@ public abstract class CanAdapter {
     
     private List<CanFrameEventClassListener> canFrameEventListeners = new ArrayList<CanFrameEventClassListener>();
     
-    public synchronized void addEventListener(CanFrameEventClassListener listener) {
+    protected CanBusSpecs specs;
+    
+    public synchronized void addEventListener(CanFrameEventClassListener listener) 
+    {
         canFrameEventListeners.add(listener);
     }
     
-    public synchronized void removeEventListener(CanFrameEventClassListener listener){
+    public synchronized void removeEventListener(CanFrameEventClassListener listener)
+    {
         canFrameEventListeners.remove(listener);
     }
     
@@ -39,5 +43,10 @@ public abstract class CanAdapter {
         while(i.hasNext())  {
             ((CanFrameEventClassListener) i.next()).handleCanFrameReceivedEvent(event);
         }
+    }
+    
+    public void setBusSpecs(CanBusSpecs specs)
+    {
+        this.specs = specs;
     }
 }

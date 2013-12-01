@@ -18,6 +18,8 @@ import java.util.TimerTask;
 public class CanClient {
     protected CanAdapter adapter;
     
+    private CanBusSpecs specs;
+    
     private static final int PCITYPE_SINGLE_FRAME = 0;
     private static final int PCITYPE_FIRST_FRAME = 1;
     private static final int PCITYPE_CONSECUTIVE_FRAME = 2;
@@ -35,9 +37,9 @@ public class CanClient {
             new ArrayList<CanMessageEventClassListener>();
 
     
-    public CanClient()
+    public CanClient(CanBusSpecs specs)
     {
-        
+        this.specs = specs;
     }
     
     public CanClient connect() throws CanClientException
@@ -51,6 +53,7 @@ public class CanClient {
         }
         adapter.addEventListener(canFrameEventClassListener);
         try {
+            adapter.setBusSpecs(specs);
             adapter.connect();
         } catch (CanAdapterException e) {
             throw new CanClientException("Adapter error: " + e.getMessage());
@@ -214,7 +217,7 @@ public class CanClient {
             try {
                 int arbID = frame.getId();
                 // check is multiFrame
-                if (arbID == 0x125) { // TODO: proper check for multipart
+                if (specs.isMultiFrame(arbID)) { 
                     
                     byte[] data = frame.getData();
                     if (data.length <= 0) {
