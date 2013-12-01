@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 import org.apache.commons.codec.binary.Hex;
@@ -27,8 +26,6 @@ public class TrackList extends Component {
     private int listOffset = 0;
     private int currentOffset = 0;
     
-    private Charset charset = Charset.forName("ISO-8859-1");
-    
     public TrackList()
     {
         this.setPreferredSize(new Dimension(400, 100));
@@ -36,7 +33,7 @@ public class TrackList extends Component {
         this.setMaximumSize(new Dimension(800, 200));
     }
     
-    public void next() throws Exception
+    public void next() throws DisplayException
     {
         if (currentOffset < LINES - 1) {
             currentOffset = currentOffset + 1;
@@ -45,13 +42,13 @@ public class TrackList extends Component {
             if (newListOffset + currentOffset < tracks.size()) {
                 listOffset = newListOffset;
             } else {
-                throw new Exception("Out of bounds");
+                throw new DisplayException("Out of bounds");
             }
         }
         this.repaint();
     }
     
-    public void prev() throws Exception
+    public void prev() throws DisplayException
     {
         if (currentOffset > 0) {
             currentOffset = currentOffset - 1;
@@ -59,16 +56,16 @@ public class TrackList extends Component {
             if (listOffset > 0) {
                 listOffset = listOffset - 1;
             } else {
-                throw new Exception("Out of bounds");
+                throw new DisplayException("Out of bounds");
             }
         }
         this.repaint();
     }
     
-    public void setTracksCount(int count) throws Exception
+    public void setTracksCount(int count) throws DisplayException
     {
         if (count < 0) {
-            throw new Exception("Unexpected tracks count " + count);
+            throw new DisplayException("Unexpected tracks count " + count);
         }
         if (count != tracks.size()) {
             if (count < tracks.size()) {
@@ -86,18 +83,18 @@ public class TrackList extends Component {
         }
     }
     
-    public void setOffsets(int listOffset, int currentOffset) throws Exception
+    public void setOffsets(int listOffset, int currentOffset) throws DisplayException
     {
         if (currentOffset < 0 || currentOffset > LINES-1) {
-            throw new Exception("currentOffset is out of bounds");
+            throw new DisplayException("currentOffset is out of bounds");
         }
         
         if (listOffset < 0 || listOffset > tracks.size() - LINES) {
-            throw new Exception("listOffset is out of bounds");
+            throw new DisplayException("listOffset is out of bounds");
         }
         
         if (currentOffset + listOffset >= tracks.size()) {
-            throw new Exception("currentOffset + listOffset is out of bounds");
+            throw new DisplayException("currentOffset + listOffset is out of bounds");
         }
         
         this.listOffset = listOffset;
@@ -191,7 +188,7 @@ public class TrackList extends Component {
         }
     }
     
-    public void processMessage(CanMessage message) throws Exception
+    public void processMessage(CanMessage message) throws DisplayException
     {
         switch (message.getId()) {
             case CanComfort.ID_TRACK_LIST:
@@ -204,7 +201,7 @@ public class TrackList extends Component {
                         } else {
                             // close track list
                             String str = new String(Hex.encodeHex(data));
-                            throw new Exception("Unexpected data `" + str + "`");
+                            throw new DisplayException("Unexpected data `" + str + "`");
                         }
                         break;
                         
@@ -240,7 +237,7 @@ public class TrackList extends Component {
                                             break;
                                         }
                                     }
-                                    trackAuthor = new String(data, currentNamesOffset, lengthOfName, charset);
+                                    trackAuthor = new String(data, currentNamesOffset, lengthOfName, CanComfort.charset);
                                     currentNamesOffset += CanComfort.TRACK_LIST_TRACK_AUTHOR_LENGTH;
                                 }
                                 
@@ -254,7 +251,7 @@ public class TrackList extends Component {
                                             break;
                                         }
                                     }
-                                    trackName = new String(data, currentNamesOffset, lengthOfName, charset);
+                                    trackName = new String(data, currentNamesOffset, lengthOfName, CanComfort.charset);
                                     currentNamesOffset += CanComfort.TRACK_LIST_TRACK_NAME_LENGTH;
                                 }
                             
@@ -271,13 +268,13 @@ public class TrackList extends Component {
                         
                     default:
                         String str = new String(Hex.encodeHex(data));
-                        throw new Exception("Unexpected data `" + str + "`");
+                        throw new DisplayException("Unexpected data `" + str + "`");
                 }
                 
                 break;
                 
             default:
-                throw new Exception("Unexpected message id `" + message.getId() + "`");
+                throw new DisplayException("Unexpected message id `" + message.getId() + "`");
         }
     }
 }

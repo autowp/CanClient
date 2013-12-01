@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 
 public abstract class CanAdapter {
-    public abstract void send(CanFrame message) throws Exception;
+    public abstract void send(CanFrame message) throws CanAdapterException;
     
-    public abstract void connect() throws Exception;
+    public abstract void connect() throws CanAdapterException;
     
     public abstract void disconnect();
     

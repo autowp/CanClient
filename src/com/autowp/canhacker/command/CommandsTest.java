@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import com.autowp.canhacker.CanHackerException;
+
 public class CommandsTest {
     
     public static byte[] hexStringToByteArray(String s) {
@@ -17,7 +19,7 @@ public class CommandsTest {
     }
 
     @Test
-    public void test() throws Exception {
+    public void test() {
         
         ArbitrationCaptureRegisterCommand c1 = new ArbitrationCaptureRegisterCommand();
         assertEquals("A", c1.toString());
@@ -51,7 +53,7 @@ public class CommandsTest {
     }
     
     @Test
-    public void bitRateTest() throws Exception
+    public void bitRateTest() throws CanHackerException 
     {
         BitRateCommand c2 = new BitRateCommand(BitRateCommand.BitRate.S0);
         assertEquals("S0", c2.toString());
@@ -72,14 +74,14 @@ public class CommandsTest {
         boolean thrown = false;
         try {
             new BitRateCommand(null);
-        } catch (Exception e) {
+        } catch (CanHackerException e) {
             thrown = true;
         }
         assertTrue(thrown);
     }
     
     @Test
-    public void transmitTest() throws Exception
+    public void transmitTest() throws CanHackerException 
     {
         TransmitCommand c1 = new TransmitCommand(0x123, hexStringToByteArray("1234567812345678"));
         assertEquals("t12381234567812345678", c1.toString());
@@ -115,7 +117,7 @@ public class CommandsTest {
         boolean thrown = false;
         try {
             new TransmitCommand(0xEFFF, hexStringToByteArray("1234567812345678"));
-        } catch (Exception e) {
+        } catch (CanHackerException e) {
             thrown = true;
         }
         assertTrue(thrown);

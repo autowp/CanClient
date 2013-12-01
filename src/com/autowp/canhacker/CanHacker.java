@@ -1,20 +1,27 @@
 package com.autowp.canhacker;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TooManyListenersException;
 
 import com.autowp.canclient.CanAdapter;
+import com.autowp.canclient.CanAdapterException;
 import com.autowp.canclient.CanFrame;
+import com.autowp.canclient.CanFrameException;
 import com.autowp.canhacker.command.*;
 import com.autowp.canhacker.response.*;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
+import gnu.io.NoSuchPortException;
+import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+import gnu.io.UnsupportedCommOperationException;
 
 public class CanHacker extends CanAdapter {
     protected SerialPort serialPort;
@@ -143,32 +150,38 @@ public class CanHacker extends CanAdapter {
         
     }
     
-    public void connect() throws Exception
+    public void connect() throws CanAdapterException
     {
         if (this.isConnected()) {
             return;
         }
         
-        CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(this.portName);
+        CommPortIdentifier portIdentifier;
+        try {
+            portIdentifier = CommPortIdentifier.getPortIdentifier(this.portName);
         
-        CommPort commPort = portIdentifier.open(this.getClass().getName(), 2000);
         
-        if (!(commPort instanceof SerialPort)) {            
-            throw new Exception(this.portName + " is not serial port");
+            CommPort commPort = portIdentifier.open(this.getClass().getName(), 2000);
+            
+            if (!(commPort instanceof SerialPort)) {            
+                throw new CanHackerException(this.portName + " is not serial port");
+            }
+            
+            this.serialPort = (SerialPort)commPort;
+            this.serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
+            this.serialPort.setSerialPortParams(this.speed, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            
+            InputStream in = serialPort.getInputStream();
+            
+            serialPort.addEventListener(new SerialReader(in));
+            serialPort.notifyOnDataAvailable(true);
+            
+            this.send(new ResetModeCommand());
+            this.send(new BitRateCommand(BitRateCommand.BitRate.S4));
+            this.send(new OperationalModeCommand());
+        } catch (NoSuchPortException | PortInUseException | UnsupportedCommOperationException | IOException | TooManyListenersException e) {
+            throw new CanAdapterException("Port error: " + e.getMessage());
         }
-        
-        this.serialPort = (SerialPort)commPort;
-        this.serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
-        this.serialPort.setSerialPortParams(this.speed, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-        
-        InputStream in = serialPort.getInputStream();
-        
-        serialPort.addEventListener(new SerialReader(in));
-        serialPort.notifyOnDataAvailable(true);
-        
-        this.send(new ResetModeCommand());
-        this.send(new BitRateCommand(BitRateCommand.BitRate.S4));
-        this.send(new OperationalModeCommand());
     }
     
     public void disconnect()
@@ -206,32 +219,40 @@ public class CanHacker extends CanAdapter {
         return this;
     }
     
-    public synchronized CanHacker send(Command c) throws Exception
+    public synchronized CanHacker send(Command c) throws CanHackerException
     {
         if (!this.isConnected()) {
-            throw new Exception("CanHacker is not connected");
+            throw new CanHackerException("CanHacker is not connected");
         }
         
         String command = c.toString() + COMMAND_DELIMITER;
         
-        this.serialPort.getOutputStream().write(command.getBytes("ISO-8859-1"));
-        
-        this.serialPort.getOutputStream().flush();
-        
-        fireCommandSendEvent(c);
+        try {
+            this.serialPort.getOutputStream().write(command.getBytes("ISO-8859-1"));
+            this.serialPort.getOutputStream().flush();
+            
+            fireCommandSendEvent(c);
+            
+        } catch (IOException e) {
+            throw new CanHackerException("I/O error: " + e.getMessage());
+        } catch (CanFrameException e) {
+            throw new CanHackerException("Can frame error: " + e.getMessage());
+        }
                 
         return this;
     }
     
-    public synchronized void addEventListener(CommandSendEventClassListener listener)  {
+    public synchronized void addEventListener(CommandSendEventClassListener listener)
+    {
         commandSendListeners.add(listener);
     }
     
-    public synchronized void removeEventListener(CommandSendEventClassListener listener)   {
+    public synchronized void removeEventListener(CommandSendEventClassListener listener)
+    {
         commandSendListeners.remove(listener);
     }
     
-    private synchronized void fireCommandSendEvent(Command command) throws Exception
+    private synchronized void fireCommandSendEvent(Command command) throws CanFrameException
     {
         CommandSendEvent event = new CommandSendEvent(this, command);
         Iterator<CommandSendEventClassListener> i = commandSendListeners.iterator();
@@ -248,15 +269,17 @@ public class CanHacker extends CanAdapter {
         }
     }
     
-    public synchronized void addEventListener(ResponseReceivedEventClassListener listener)  {
+    public synchronized void addEventListener(ResponseReceivedEventClassListener listener) 
+    {
         responseReceivedListeners.add(listener);
     }
     
-    public synchronized void removeEventListener(ResponseReceivedEventClassListener listener)   {
+    public synchronized void removeEventListener(ResponseReceivedEventClassListener listener)   
+    {
         responseReceivedListeners.remove(listener);
     }
     
-    private synchronized void fireResponseReceivedEvent(Response response) throws Exception
+    private synchronized void fireResponseReceivedEvent(Response response) throws CanFrameException 
     {
         ResponseReceivedEvent event = new ResponseReceivedEvent(this, response);
         Iterator<ResponseReceivedEventClassListener> i = responseReceivedListeners.iterator();
@@ -324,8 +347,8 @@ public class CanHacker extends CanAdapter {
     }
 
     @Override
-    public void send(CanFrame message) throws Exception {
-        
+    public void send(CanFrame message) throws CanHackerException
+    {
         TransmitCommand command = new TransmitCommand(message.getId(), message.getData());
 
         this.send(command);

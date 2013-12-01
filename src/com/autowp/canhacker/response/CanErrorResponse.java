@@ -10,13 +10,18 @@ public class CanErrorResponse extends Response {
     
     protected int errorCode;
 
-    public CanErrorResponse(byte[] bytes) throws ResponseException, DecoderException
+    public CanErrorResponse(byte[] bytes) throws ResponseException
     {
         if (bytes.length != 3) {
             throw new ResponseException("Version response must be 3 bytes long");
         }
         
-        byte[] decodedBytes = Hex.decodeHex((new String(bytes)).substring(1).toCharArray());
+        byte[] decodedBytes;
+        try {
+            decodedBytes = Hex.decodeHex((new String(bytes)).substring(1).toCharArray());
+        } catch (DecoderException e) {
+            throw new ResponseException("Decoder error: " + e.getMessage());
+        }
 
         if (decodedBytes.length != 1) {
             throw new ResponseException("Decoded error code must by 1 byte long");

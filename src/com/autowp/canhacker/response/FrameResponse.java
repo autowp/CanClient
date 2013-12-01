@@ -7,14 +7,14 @@ import org.apache.commons.lang3.StringUtils;
 public class FrameResponse extends Response {
     final public static char CODE = 't';
     
-    final public static char ID_LENGTH_CHARS = 3;
-    final public static char TIMESTAMP_LENGTH_CHARS = 4;
+    final public static int ID_LENGTH_CHARS = 3;
+    final public static int TIMESTAMP_LENGTH_CHARS = 4;
     
-    final public static char ID_MIN = 0;
-    final public static char ID_MAX = 0x07FF; // 11bits
+    final public static int ID_MIN = 0;
+    final public static int ID_MAX = 0x07FF; // 11bits
     
-    final public static char DATA_LENGTH_MIN = 0;
-    final public static char DATA_LENGTH_MAX = 8;
+    final public static int DATA_LENGTH_MIN = 0;
+    final public static int DATA_LENGTH_MAX = 8;
     
     protected int id;
     
@@ -22,7 +22,7 @@ public class FrameResponse extends Response {
     
     protected int timestamp;
     
-    public FrameResponse(byte[] bytes) throws ResponseException, DecoderException
+    public FrameResponse(byte[] bytes) throws ResponseException
     {
         if (bytes.length < 5) {
             throw new ResponseException("Frame response must be >= 5 bytes long");
@@ -62,9 +62,17 @@ public class FrameResponse extends Response {
             throw new ResponseException("Frame response data length cannot be > " + DATA_LENGTH_MAX);
         }
         
+        if (str.length() < 4 + dataLength * 2) {
+            throw new ResponseException("Frame response data length smaller than data length byte value (" + dataLength + ")");
+        }
+        
         // extract data
         String dataStr = str.substring(4, 4 + dataLength * 2);
-        this.data = Hex.decodeHex(dataStr.toCharArray());
+        try {
+            this.data = Hex.decodeHex(dataStr.toCharArray());
+        } catch (DecoderException e) {
+            throw new ResponseException("Decoder error: " + e.getMessage());
+        }
         
         // extract timestamp, if need
         int lengthWithoutTimestamp = ID_LENGTH_CHARS + 1 + dataLength * 2;

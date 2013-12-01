@@ -98,13 +98,13 @@ public class CanFilter {
         return matchId(message.getId());
     }
     
-    public void readFromStream(FileInputStream in) throws Exception
+    public void readFromStream(FileInputStream in) throws CanFilterException, NumberFormatException, IOException
     {
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
         
         String line = br.readLine();
         if (line == null) {
-            throw new Exception("Match line not found");
+            throw new CanFilterException("Match line not found");
         }
         
         switch (line) {
@@ -117,7 +117,7 @@ public class CanFilter {
                 break;
                 
             default:
-                throw new Exception("Match line not valid");
+                throw new CanFilterException("Match line not valid");
         }
         
         this.clear();

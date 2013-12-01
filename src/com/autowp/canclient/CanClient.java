@@ -3,16 +3,12 @@
  */
 package com.autowp.canclient;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import org.apache.commons.codec.binary.Hex;
 
 
 /**
@@ -44,17 +40,21 @@ public class CanClient {
         
     }
     
-    public CanClient connect() throws Exception
+    public CanClient connect() throws CanClientException
     {
         if (this.isConnected()) {
             return this;
         }
         
         if (adapter == null) {
-            throw new Exception("Adapter not specified");
+            throw new CanClientException("Adapter not specified");
         }
         adapter.addEventListener(canFrameEventClassListener);
-        adapter.connect();
+        try {
+            adapter.connect();
+        } catch (CanAdapterException e) {
+            throw new CanClientException("Adapter error: " + e.getMessage());
+        }
         
         return this;
     }
@@ -85,13 +85,17 @@ public class CanClient {
         return adapter != null && adapter.isConnected();
     }
     
-    public CanClient send(CanFrame message) throws Exception
+    public CanClient send(CanFrame message) throws CanClientException
     {
         if (!this.isConnected()) {
-            throw new Exception("CanClient is not connected");
+            throw new CanClientException("CanClient is not connected");
         }
         
-        adapter.send(message);
+        try {
+            adapter.send(message);
+        } catch (CanAdapterException e) {
+            throw new CanClientException("Adapter error: " + e.getMessage());
+        }
         
         return this;
     }
@@ -214,7 +218,7 @@ public class CanClient {
                     
                     byte[] data = frame.getData();
                     if (data.length <= 0) {
-                        throw new Exception("Unexpected zero size can message");
+                        throw new CanClientException("Unexpected zero size can message");
                     }
                     
                     int pciType = (data[0] & 0xF0) >>> 4;
@@ -254,7 +258,7 @@ public class CanClient {
                             
                             MultiFrameBuffer buffer = multiframeBuffers.get(arbID);
                             if (buffer == null) {
-                                throw new Exception("Buffer for " + arbID + " not found");
+                                throw new CanClientException("Buffer for " + arbID + " not found");
                             }
                             
                             buffer.append(messageData, index);
@@ -274,7 +278,7 @@ public class CanClient {
                             break;
                             
                         default:
-                            throw new Exception("Unexpected PCITYPE " + pciType);
+                            throw new CanClientException("Unexpected PCITYPE " + pciType);
                     }
                             
                 } else {
@@ -282,7 +286,7 @@ public class CanClient {
                         new CanMessage(arbID, frame.getData())
                     );
                 }
-            } catch (Exception ex) {
+            } catch (CanClientException | CanMessageException ex) {
                 ex.printStackTrace();
             }
         }
@@ -300,14 +304,14 @@ public class CanClient {
             this.lastCounter = -1; // initial value to match first 0
         }
         
-        public void append(byte[] data, int cycleCounter) throws Exception
+        public void append(byte[] data, int cycleCounter) throws CanClientException
         {
             if (currentLength + data.length > buffer.length) {
-                throw new Exception("Buffer overflow detected");
+                throw new CanClientException("Buffer overflow detected");
             }
             
             if (cycleCounter != (lastCounter + 1) % 16) {
-                throw new Exception("Cycle counter breaks from " + lastCounter + " to " + cycleCounter);
+                throw new CanClientException("Cycle counter breaks from " + lastCounter + " to " + cycleCounter);
             }
             
             System.arraycopy(data, 0, buffer, currentLength, data.length);

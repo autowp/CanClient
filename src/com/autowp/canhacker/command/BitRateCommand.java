@@ -1,5 +1,7 @@
 package com.autowp.canhacker.command;
 
+import com.autowp.canhacker.CanHackerException;
+
 /**
  * Sn[CR]
  * 
@@ -44,12 +46,12 @@ public class BitRateCommand extends Command {
     
     protected BitRate bitRate;
     
-    public BitRateCommand(BitRate bitRate) throws Exception
+    public BitRateCommand(BitRate bitRate) throws CanHackerException
     {
         this.name = "S";
         
         if (bitRate == null) {
-            throw new Exception("BitRate cannot be null");
+            throw new CanHackerException("BitRate cannot be null");
         }
         
         this.bitRate = bitRate;

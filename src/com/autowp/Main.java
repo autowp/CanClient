@@ -2,7 +2,6 @@ package com.autowp;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
-import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
 
 import java.awt.EventQueue;
@@ -15,6 +14,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 import com.autowp.canclient.CanClient;
+import com.autowp.canclient.CanClientException;
 import com.autowp.canclient.CanFrameEvent;
 import com.autowp.canclient.CanFrameEventClassListener;
 import com.autowp.canclient.CanMessageEvent;
@@ -25,6 +25,7 @@ import com.autowp.canhacker.ResponseReceivedEventClassListener;
 import com.autowp.canhacker.CommandSendEvent;
 import com.autowp.canhacker.CommandSendEventClassListener;
 import com.autowp.peugeot.CanComfort;
+import com.autowp.peugeot.CanComfortException;
 import com.autowp.peugeot.DisplayDialog;
 
 import javax.swing.JFrame;
@@ -273,20 +274,18 @@ public class Main {
                     }
                 });
                 
+              
                 try {
                     client.connect();
                     logCanhacker("Connected");
-                    
                     CanComfort.emulateCar(client, vinTextField.getText());
                     logCanhacker("Emulation started");
-                    
-                } catch (PortInUseException exception) {
-                    logCanhacker("Error: Port " + canHacker.getPortName() + " in use");
-                } catch (NoSuchPortException exception) {
-                    logCanhacker("Error: Port " + canHacker.getPortName() + " not found");
-                } catch (Exception exception) {
-                    logCanhacker("Exception: " + exception.toString());
+                } catch (CanClientException e1) {
+                    logCanhacker("Can client error: " + e1.getMessage());
+                } catch (CanComfortException e1) {
+                    logCanhacker("Can comfort error: " + e1.getMessage());
                 }
+                
             }
             
             connectAction.setEnabled(!client.isConnected());

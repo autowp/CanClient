@@ -8,17 +8,19 @@ import org.junit.Test;
 public class ResponsesTest {
 
     @Test
-    public void bellTest() throws ResponseException, DecoderException {
+    public void bellTest() throws ResponseException
+    {
         assertTrue(Response.fromBytes(new byte[] {0x07}) instanceof BellResponse);
+        
         try {
             Response.fromBytes((((char)0x07) + "A").getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("xxx".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
     }
@@ -28,31 +30,31 @@ public class ResponsesTest {
     {
         try {
             Response.fromBytes("V".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("V0".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("V01".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("V012".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("V01234".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
@@ -63,7 +65,7 @@ public class ResponsesTest {
             assertEquals("V0123", r.toString());
             VersionResponse v = (VersionResponse)r;
             assertEquals("0123", v.getVersion());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
     }
@@ -75,25 +77,25 @@ public class ResponsesTest {
         
         try {
             Response.fromBytes("F012".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("F0123".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("F0".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
         try {
             Response.fromBytes("F".getBytes()); fail();
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             assertTrue(true);
         }
         
@@ -103,7 +105,7 @@ public class ResponsesTest {
             assertEquals("FFF", r.toString());
             CanErrorResponse v = (CanErrorResponse)r;
             assertEquals(255, v.getErrorCode());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -113,7 +115,7 @@ public class ResponsesTest {
             assertEquals("F00", r.toString());
             CanErrorResponse v = (CanErrorResponse)r;
             assertEquals(0, v.getErrorCode());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -123,7 +125,7 @@ public class ResponsesTest {
             assertEquals("F65", r.toString());
             CanErrorResponse v = (CanErrorResponse)r;
             assertEquals(101, v.getErrorCode());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
     }
@@ -139,7 +141,7 @@ public class ResponsesTest {
             assertEquals("v0000", r.toString());
             FirmwareVersionResponse v = (FirmwareVersionResponse)r;
             assertEquals("0000", v.getVersion());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -149,7 +151,7 @@ public class ResponsesTest {
             assertEquals("v0001", r.toString());
             FirmwareVersionResponse v = (FirmwareVersionResponse)r;
             assertEquals("0001", v.getVersion());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -159,7 +161,7 @@ public class ResponsesTest {
             assertEquals("vFFFF", r.toString());
             FirmwareVersionResponse v = (FirmwareVersionResponse)r;
             assertEquals("FFFF", v.getVersion());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
     }
@@ -208,7 +210,7 @@ public class ResponsesTest {
             assertEquals("t1230", r.toString());
             FrameResponse v = (FrameResponse)r;
             assertEquals(0x123, v.getId());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -218,7 +220,7 @@ public class ResponsesTest {
             assertEquals("t123112", r.toString());
             FrameResponse v = (FrameResponse)r;
             assertEquals(0x123, v.getId());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -228,7 +230,7 @@ public class ResponsesTest {
             assertEquals("t12321234", r.toString());
             FrameResponse v = (FrameResponse)r;
             assertEquals(0x123, v.getId());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -238,7 +240,7 @@ public class ResponsesTest {
             assertEquals("t1233123451", r.toString());
             FrameResponse v = (FrameResponse)r;
             assertEquals(0x123, v.getId());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -248,7 +250,7 @@ public class ResponsesTest {
             assertEquals("t123412345123", r.toString());
             FrameResponse v = (FrameResponse)r;
             assertEquals(0x123, v.getId());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         
@@ -258,7 +260,7 @@ public class ResponsesTest {
             assertEquals("t12351234512345", r.toString());
             FrameResponse v = (FrameResponse)r;
             assertEquals(0x123, v.getId());
-        } catch (Exception e) {
+        } catch (ResponseException e) {
             fail();
         }
         

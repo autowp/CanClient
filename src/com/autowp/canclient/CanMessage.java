@@ -8,10 +8,10 @@ public class CanMessage {
     final public static int ID_MIN = 0;
     final public static int ID_MAX = 0x07FF; // 11bits
     
-    public CanMessage(int id, byte[] data) throws Exception
+    public CanMessage(int id, byte[] data) throws CanMessageException
     {
         if (!isValidId(id)) {
-            throw new Exception("Invalid id " + id);
+            throw new CanMessageException("Invalid id " + id);
         }
         
         this.id = id;

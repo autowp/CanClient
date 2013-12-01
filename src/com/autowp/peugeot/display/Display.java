@@ -3,11 +3,7 @@ package com.autowp.peugeot.display;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.nio.charset.Charset;
-
 import javax.swing.JPanel;
-
-import org.apache.commons.codec.binary.Hex;
 
 import com.autowp.canclient.CanClient;
 import com.autowp.canclient.CanMessage;
@@ -69,7 +65,7 @@ public class Display extends JPanel {
         return trackList;
     }
     
-    public void processMessage(CanMessage message) throws Exception
+    public void processMessage(CanMessage message) throws DisplayException
     {
         switch (message.getId()) {
             case CanComfort.ID_TRACK_LIST:

@@ -1,13 +1,12 @@
 package com.autowp.canhacker.response;
 
-import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 abstract public class Response {
     
     abstract public String toString();
     
-    public static Response fromBytes(byte[] bytes) throws ResponseException, DecoderException
+    public static Response fromBytes(byte[] bytes) throws ResponseException
     {
         if (bytes.length <= 0) {
             throw new ResponseException("Invalid response: empty bytes");

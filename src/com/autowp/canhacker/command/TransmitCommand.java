@@ -1,5 +1,7 @@
 package com.autowp.canhacker.command;
 
+import com.autowp.canhacker.CanHackerException;
+
 /**
  * tiiiLDDDDDDDDDDDDDDDD[CR]
  * 
@@ -23,18 +25,18 @@ public class TransmitCommand extends Command {
     
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
     
-    public TransmitCommand(int id, byte[] newData) throws Exception
+    public TransmitCommand(int id, byte[] newData) throws CanHackerException
     {
         this.name = "t";
         
         if (id > 0x07FF) {
-            throw new Exception("ID cannot be greater than 11 bits int");
+            throw new CanHackerException("ID cannot be greater than 11 bits int");
         }
         
         this.id = id;
         
         if (newData.length > MAX_DATA_LENGTH) {
-            throw new Exception("Data length must be in " + MAX_DATA_LENGTH + " bytes");
+            throw new CanHackerException("Data length must be in " + MAX_DATA_LENGTH + " bytes");
         }
         
         this.data = new byte[newData.length];

@@ -14,31 +14,29 @@ public class CanFrame {
     final public static char DATA_LENGTH_MIN = 0;
     final public static char DATA_LENGTH_MAX = 8;
     
-    public CanFrame(int id, byte[] data) throws Exception
+    public CanFrame(int id, byte[] data) throws CanFrameException
     {
         if (!isValidId(id)) {
-            throw new Exception("Invalid id " + id);
+            throw new CanFrameException("Invalid id " + id);
         }
         
         if (!isValidData(data)) {
             String hex = new String(Hex.encodeHex(data));
-            throw new Exception("Invalid data `" + hex + "` (" + data.length + " bytes)");
+            throw new CanFrameException("Invalid data `" + hex + "` (" + data.length + " bytes)");
         }
         
         this.id = id;
         this.data = new byte[data.length];
         System.arraycopy(data, 0, this.data, 0, data.length);
     }
-    
-    public CanFrame(int id, String string) throws Exception {
-        this(id, Hex.decodeHex(string.toCharArray()));
-    }
 
-    public int getId() {
+    public int getId() 
+    {
         return this.id;
     }
 
-    public byte[] getData() {
+    public byte[] getData() 
+    {
         return this.data;
     }
     
