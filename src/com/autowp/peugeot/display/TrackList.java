@@ -22,6 +22,8 @@ public class TrackList extends Component {
     public static final int LINES = 4;
     private static final double LINE_STRING_PADDING = .15;
     
+    private static final String DEFAULT_TRACK_NAME = "Not entered";
+    
     private ArrayList<Track> tracks = new ArrayList<Track>();
     private int listOffset = 0;
     private int currentOffset = 0;
@@ -148,6 +150,11 @@ public class TrackList extends Component {
                 text += " / ";
             }
             text += track.getAuthor();
+            
+            if (track.getName().length() <= 0 && track.getAuthor().length() <= 0) {
+                text += DEFAULT_TRACK_NAME;
+            }
+            
             g.setColor(fontColor);
             g.drawString(text, (int) rect.getX(), (int) (rect.getY() + lineHeight * (1 - LINE_STRING_PADDING)));
             
@@ -213,8 +220,6 @@ public class TrackList extends Component {
                         
                         int listOffset = (int)data[2] & 0xFF;
                         int currentOffset = data[3] & 0x0F;
-                        
-                        
                         
                         setTracksCount(tracksCount);
                         setOffsets(listOffset, currentOffset);
