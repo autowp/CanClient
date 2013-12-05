@@ -15,6 +15,7 @@ public class CanComfort {
     public static final int ID_IGNITION = 0x036;
     public static final int ID_VIN = 0x2B6;
     public static final int ID_TRACK_LIST = 0x125;
+    public static final int ID_VOLUME = 0x1A5;
     
     public static final int IGNITION_PERIOD = 200;
     

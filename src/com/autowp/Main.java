@@ -89,6 +89,36 @@ public class Main {
     public Main() {
         initialize();
     }
+    
+    protected CanClient createClient()
+    {
+        CanClient client = new CanClient(new CanComfortSpecs());
+        
+        client.addEventListener(new CanFrameEventClassListener() {
+            @Override
+            public void handleCanFrameReceivedEvent(CanFrameEvent e) {
+                canReceiveTable.addCanFrame(e.getFrame());
+            }
+            @Override
+            public void handleCanFrameSentEvent(CanFrameEvent e) {
+                canSentTable.addCanFrame(e.getFrame());
+            }
+        });
+        
+        client.addEventListener(new CanMessageEventClassListener() {
+            @Override
+            public void handleCanMessageReceivedEvent(CanMessageEvent e) {
+                canMessageReceiveTable.addCanMessage(e.getMessage());
+            }
+            @Override
+            public void handleCanMessageSentEvent(CanMessageEvent e) {
+                // TODO Auto-generated method stub
+                
+            }
+        });
+        
+        return client;
+    }
 
     /**
      * Initialize the contents of the frame.
@@ -105,7 +135,7 @@ public class Main {
         final DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(comboBoxItems);
         model.setSelectedItem("COM3");
         
-        this.client = new CanClient(new CanComfortSpecs());
+        this.client = createClient();
         
         JToolBar toolBar = new JToolBar();
         portNameBox = new JComboBox<String>(model);
@@ -240,41 +270,20 @@ public class Main {
                 canHacker.setSpeed(115200);
                 
                 canHacker.addEventListener(new CommandSendEventClassListener() {
+                    @Override
                     public void handleCommandSendEventClassEvent(CommandSendEvent e) {
                         logCanhacker("-> " + e.getCommand().toString());
                     }
                 });
                 
                 canHacker.addEventListener(new ResponseReceivedEventClassListener() {
+                    @Override
                     public void handleResponseReceivedEventClassEvent(ResponseReceivedEvent e) {
                         logCanhacker("<- " + e.getCommand().toString());
                     }
                 });
                 
-                
                 client.setAdapter(canHacker);
-                
-                client.addEventListener(new CanFrameEventClassListener() {
-                    public void handleCanFrameReceivedEvent(CanFrameEvent e) {
-                        canReceiveTable.addCanFrame(e.getFrame());
-                    }
-                    public void handleCanFrameSentEvent(CanFrameEvent e) {
-                        canSentTable.addCanFrame(e.getFrame());
-                    }
-                });
-                
-                client.addEventListener(new CanMessageEventClassListener() {
-                    @Override
-                    public void handleCanMessageReceivedEvent(CanMessageEvent e) {
-                        canMessageReceiveTable.addCanMessage(e.getMessage());
-                    }
-                    @Override
-                    public void handleCanMessageSentEvent(CanMessageEvent e) {
-                        // TODO Auto-generated method stub
-                        
-                    }
-                });
-                
               
                 try {
                     client.connect();

@@ -1,12 +1,13 @@
 package com.autowp.peugeot.display;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+
+import javax.swing.JPanel;
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -14,10 +15,10 @@ import com.autowp.canclient.CanMessage;
 import com.autowp.peugeot.CanComfort;
 
 @SuppressWarnings("serial")
-public class TrackList extends Component {
+public class TrackList extends JPanel {
     
-    private static final Color BACKGROUND = Color.BLACK;
-    private static final Color FOREGROUND = Color.ORANGE;
+    private static final Color BACKGROUND = Color.ORANGE;
+    private static final Color FOREGROUND = Color.BLACK;
     
     public static final int LINES = 4;
     private static final double LINE_STRING_PADDING = .15;
@@ -30,6 +31,7 @@ public class TrackList extends Component {
     
     public TrackList()
     {
+        this.setBackground(BACKGROUND);
         this.setPreferredSize(new Dimension(400, 100));
         this.setMinimumSize(new Dimension(200, 50));
         this.setMaximumSize(new Dimension(800, 200));
@@ -105,8 +107,10 @@ public class TrackList extends Component {
         this.repaint();
     }
     
-    public void paint(Graphics g)
+    public void paintComponent(Graphics g)
     {
+        super.paintComponent(g);
+        
         Dimension size = getSize();
         
         // background
@@ -114,7 +118,6 @@ public class TrackList extends Component {
         int height = size.height;
         
         g.setColor(FOREGROUND);
-        g.fillRect(0, 0, width, height);
         
         // list
         int lineHeight = height / LINES;
@@ -129,11 +132,11 @@ public class TrackList extends Component {
             Color fontColor;
             Color bgColor;
             if (currentOffset == line) {
-                fontColor = FOREGROUND;
-                bgColor = BACKGROUND;
-            } else {
                 fontColor = BACKGROUND;
                 bgColor = FOREGROUND;
+            } else {
+                fontColor = FOREGROUND;
+                bgColor = BACKGROUND;
             }
             
             Rectangle rect = new Rectangle(0, line * lineHeight, width, lineHeight);
@@ -143,24 +146,27 @@ public class TrackList extends Component {
             g.setColor(bgColor);
             g.fillRect((int) rect.getX(), (int) rect.getY(), (int) rect.getWidth(), (int) rect.getHeight());
             
+            String trackName;
             // text
-            Track track = tracks.get(trackNumber);
-            String text = (trackNumber+1) + ": " + track.getName();
-            if (track.getName().length() > 0 && track.getAuthor().length() > 0) {
-                text += " / ";
+            if (trackNumber < tracks.size()) {
+                Track track = tracks.get(trackNumber);
+                trackName = track.getName();
+                if (track.getName().length() > 0 && track.getAuthor().length() > 0) {
+                    trackName += " / ";
+                }
+                trackName += track.getAuthor();
+            } else {
+                trackName = "";
             }
-            text += track.getAuthor();
             
-            if (track.getName().length() <= 0 && track.getAuthor().length() <= 0) {
-                text += DEFAULT_TRACK_NAME;
+            if (trackName.length() <= 0) {
+                trackName = DEFAULT_TRACK_NAME;
             }
             
             g.setColor(fontColor);
-            g.drawString(text, (int) rect.getX(), (int) (rect.getY() + lineHeight * (1 - LINE_STRING_PADDING)));
+            g.drawString((trackNumber+1) + ": " + trackName, (int) rect.getX(), (int) (rect.getY() + lineHeight * (1 - LINE_STRING_PADDING)));
             
         }
-        
-        super.paint(g);
     }
     
     public void setTrack(int number, String author, String name)
