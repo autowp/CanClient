@@ -1,9 +1,5 @@
 package com.autowp.peugeot.display;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
 import java.util.Arrays;
 
 import javax.swing.JLabel;
@@ -16,18 +12,18 @@ import com.autowp.peugeot.CanComfort;
 
 @SuppressWarnings("serial")
 public class CurrentCDTrack extends JLabel {
-    private static final Color BACKGROUND = Color.ORANGE;
-    private static final Color FOREGROUND = Color.BLACK;
-    private static final Color FOREGROUND_SECONDARY = new Color(0x804000);
+    private Scheme scheme = null;
     
     private static final byte[] emptyData = new byte[] {0x20, 0x00, 0x00, 0x00, 0x00};
     
     protected Track track = new Track();
     
-    public CurrentCDTrack()
+    public CurrentCDTrack(Scheme scheme)
     {
-        this.setBackground(BACKGROUND);
-        this.setForeground(FOREGROUND);
+        this.scheme = scheme;
+        
+        this.setBackground(this.scheme.getBackground());
+        this.setForeground(this.scheme.getForeground());
     }
     
     public void processMessage(CanMessage message) throws DisplayException

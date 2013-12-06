@@ -16,9 +16,7 @@ import com.autowp.peugeot.CanComfort;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
-    
-    private static final Color BACKGROUND = Color.ORANGE;
-    private static final Color FOREGROUND = Color.BLACK;
+    private Scheme scheme = null;
     
     public static final int LINES = 4;
     private static final double LINE_STRING_PADDING = .15;
@@ -29,10 +27,13 @@ public class TrackList extends JPanel {
     private int listOffset = 0;
     private int currentOffset = 0;
     
-    public TrackList()
+    public TrackList(Scheme scheme)
     {
-        this.setBackground(BACKGROUND);
-        this.setForeground(FOREGROUND);
+        this.scheme = scheme;
+        
+        this.setBackground(scheme.getBackground());
+        this.setForeground(scheme.getForeground());
+        
         this.setPreferredSize(new Dimension(400, 100));
         this.setMinimumSize(new Dimension(200, 50));
         this.setMaximumSize(new Dimension(800, 200));
@@ -118,7 +119,7 @@ public class TrackList extends JPanel {
         int width = size.width;
         int height = size.height;
         
-        g.setColor(FOREGROUND);
+        g.setColor(scheme.getBackground());
         
         // list
         int lineHeight = height / LINES;
@@ -128,16 +129,16 @@ public class TrackList extends JPanel {
         
         for (int line=0; line < LINES; line++) {
             int trackNumber = listOffset + line;
-            g.setColor(BACKGROUND);
+            g.setColor(scheme.getBackground());
             
             Color fontColor;
             Color bgColor;
             if (currentOffset == line) {
-                fontColor = BACKGROUND;
-                bgColor = FOREGROUND;
+                fontColor = scheme.getBackground();
+                bgColor = scheme.getForeground();
             } else {
-                fontColor = FOREGROUND;
-                bgColor = BACKGROUND;
+                fontColor = scheme.getForeground();
+                bgColor = scheme.getBackground();
             }
             
             Rectangle rect = new Rectangle(0, line * lineHeight, width, lineHeight);

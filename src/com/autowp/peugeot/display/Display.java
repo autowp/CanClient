@@ -1,6 +1,5 @@
 package com.autowp.peugeot.display;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JPanel;
@@ -14,9 +13,7 @@ import com.autowp.peugeot.CanComfort;
 @SuppressWarnings("serial")
 public class Display extends JPanel {
     
-    private static final Color BACKGROUND = Color.ORANGE;
-    private static final Color FOREGROUND = Color.BLACK;
-    private static final Color FOREGROUND_SECONDARY = new Color(0x804000);
+    private Scheme scheme = Scheme.factory("inverse"); 
     
     private TrackList trackList;
     private Volume volume;
@@ -25,20 +22,20 @@ public class Display extends JPanel {
     
     public Display(CanClient client)
     {
-        this.setBackground(BACKGROUND);
-        this.setForeground(FOREGROUND);
+        this.setBackground(scheme.getBackground());
+        this.setForeground(scheme.getForeground());
         
         GridBagLayout layout = new GridBagLayout();
 
         this.setLayout(layout);
         
-        trackList = new TrackList();
+        trackList = new TrackList(scheme);
         trackList.setVisible(false);
         
-        volume = new Volume();
+        volume = new Volume(scheme);
         volume.setVisible(false);
         
-        currentCDTrack = new CurrentCDTrack();
+        currentCDTrack = new CurrentCDTrack(scheme);
         currentCDTrack.setVisible(false);
         
         GridBagConstraints c = new GridBagConstraints();

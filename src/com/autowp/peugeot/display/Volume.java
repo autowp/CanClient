@@ -1,6 +1,5 @@
 package com.autowp.peugeot.display;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -17,9 +16,7 @@ import com.autowp.peugeot.CanComfort;
 
 @SuppressWarnings("serial")
 public class Volume extends JPanel {
-    private static final Color BACKGROUND = Color.ORANGE;
-    private static final Color FOREGROUND = Color.BLACK;
-    private static final Color FOREGROUND_SECONDARY = new Color(0x804000);
+    private Scheme scheme = null;
     
     private static final int MIN_VOLUME = 0;
     private static final int MAX_VOLUME = 30;
@@ -43,13 +40,15 @@ public class Volume extends JPanel {
         14.25, 14.5, 14.75, 15, 15.25, 15.5, 15.75, 16 // 30
     };
     
-    public Volume()
+    public Volume(Scheme scheme)
     {
         this.setPreferredSize(new Dimension(400, 100));
         this.setMinimumSize(new Dimension(200, 50));
         this.setMaximumSize(new Dimension(800, 200));
-        this.setBackground(BACKGROUND);
-        this.setForeground(FOREGROUND);
+        this.scheme = scheme;
+        
+        this.setBackground(scheme.getBackground());
+        this.setForeground(scheme.getForeground());
     }
     
     public void processMessage(CanMessage message) throws DisplayException
@@ -127,7 +126,7 @@ public class Volume extends JPanel {
         double paddingPixelsH = width * PADDING;
         double paddingPixelsV = height * PADDING;
         
-        g.setColor(BACKGROUND);
+        g.setColor(scheme.getBackground());
         g.fillRect(0, 0, width, height);
         
         Rectangle rect = new Rectangle(
@@ -135,7 +134,7 @@ public class Volume extends JPanel {
             (int)(width-paddingPixelsH*2), (int)(height-paddingPixelsV*2)
         );
         
-        g.setColor(FOREGROUND);
+        g.setColor(scheme.getForeground());
         g.drawRect(rect.x, rect.y, rect.width-1, rect.height);
         
         //double perColumn = rect.getWidth() / COLUMNS;
@@ -152,7 +151,7 @@ public class Volume extends JPanel {
             int columnLeft = (int)Math.round(rect.x + columnWidth * i + gutterWidth * (i));
             int columnTop = columnBottom - columnHeight;
             
-            g.setColor(FOREGROUND_SECONDARY);
+            g.setColor(scheme.getForegroundSecondary());
             g.fillRect(
                 columnLeft, columnTop, 
                 columnWidthRounded, columnHeight
@@ -162,7 +161,7 @@ public class Volume extends JPanel {
             
             if (i <= gridValue) {
                 double fill = gridValue - i;
-                g.setColor(FOREGROUND);
+                g.setColor(scheme.getForeground());
                 if (fill <= 1) {
                     g.fillRect(
                         columnLeft, columnTop, 
