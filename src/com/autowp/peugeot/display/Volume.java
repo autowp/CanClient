@@ -49,6 +49,7 @@ public class Volume extends JPanel {
         this.setMinimumSize(new Dimension(200, 50));
         this.setMaximumSize(new Dimension(800, 200));
         this.setBackground(BACKGROUND);
+        this.setForeground(FOREGROUND);
     }
     
     public void processMessage(CanMessage message) throws DisplayException

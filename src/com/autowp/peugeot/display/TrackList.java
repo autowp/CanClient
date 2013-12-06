@@ -32,6 +32,7 @@ public class TrackList extends JPanel {
     public TrackList()
     {
         this.setBackground(BACKGROUND);
+        this.setForeground(FOREGROUND);
         this.setPreferredSize(new Dimension(400, 100));
         this.setMinimumSize(new Dimension(200, 50));
         this.setMaximumSize(new Dimension(800, 200));
@@ -150,16 +151,8 @@ public class TrackList extends JPanel {
             // text
             if (trackNumber < tracks.size()) {
                 Track track = tracks.get(trackNumber);
-                trackName = track.getName();
-                if (track.getName().length() > 0 && track.getAuthor().length() > 0) {
-                    trackName += " / ";
-                }
-                trackName += track.getAuthor();
+                trackName = track.getCompleteName(" / ", DEFAULT_TRACK_NAME);
             } else {
-                trackName = "";
-            }
-            
-            if (trackName.length() <= 0) {
                 trackName = DEFAULT_TRACK_NAME;
             }
             
@@ -172,33 +165,6 @@ public class TrackList extends JPanel {
     public void setTrack(int number, String author, String name)
     {
         tracks.set(number, new Track(author, name));
-    }
-    
-    private class Track
-    {
-        protected String author;
-        protected String name;
-        
-        public Track()
-        {
-            this("", "");
-        }
-        
-        public Track(String author, String name)
-        {
-            this.author = author;
-            this.name = name;
-        }
-        
-        public String getAuthor()
-        {
-            return author;
-        }
-        
-        public String getName()
-        {
-            return name;
-        }
     }
     
     public void processMessage(CanMessage message) throws DisplayException

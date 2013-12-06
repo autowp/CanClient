@@ -16,9 +16,12 @@ public class Display extends JPanel {
     
     private static final Color BACKGROUND = Color.ORANGE;
     private static final Color FOREGROUND = Color.BLACK;
+    private static final Color FOREGROUND_SECONDARY = new Color(0x804000);
     
     private TrackList trackList;
     private Volume volume;
+    
+    private CurrentCDTrack currentCDTrack;
     
     public Display(CanClient client)
     {
@@ -35,6 +38,9 @@ public class Display extends JPanel {
         volume = new Volume();
         volume.setVisible(false);
         
+        currentCDTrack = new CurrentCDTrack();
+        currentCDTrack.setVisible(false);
+        
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
@@ -45,6 +51,8 @@ public class Display extends JPanel {
         this.add(trackList, c);
         
         this.add(volume, c);
+        
+        this.add(currentCDTrack, c);
         
         if (client != null) {
             client.addEventListener(new CanMessageEventClassListener() {
@@ -81,6 +89,10 @@ public class Display extends JPanel {
             case CanComfort.ID_VOLUME:
                 volume.processMessage(message);
                 break;    
+                
+            case CanComfort.ID_CURRENT_CD_TRACK:
+                currentCDTrack.processMessage(message);
+                break;
                 
             default:
                 // just skip

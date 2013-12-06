@@ -7,7 +7,7 @@ public class CanComfortSpecs extends CanBusSpecs {
     {
         this.speed = CanComfort.SPEED;
         this.multiframeAbitrationID = new int[] {
-            CanComfort.ID_TRACK_LIST
+            CanComfort.ID_TRACK_LIST, CanComfort.ID_CURRENT_CD_TRACK
         };
     }
 }
