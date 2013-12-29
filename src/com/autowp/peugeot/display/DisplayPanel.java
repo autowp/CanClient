@@ -2,7 +2,6 @@ package com.autowp.peugeot.display;
 
 import javax.swing.JPanel;
 import java.awt.CardLayout;
-import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;

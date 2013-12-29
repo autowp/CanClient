@@ -20,10 +20,7 @@ import com.autowp.canclient.CanFrameEventClassListener;
 import com.autowp.canclient.CanMessageEvent;
 import com.autowp.canclient.CanMessageEventClassListener;
 import com.autowp.canhacker.CanHacker;
-import com.autowp.canhacker.ResponseReceivedEvent;
-import com.autowp.canhacker.ResponseReceivedEventClassListener;
-import com.autowp.canhacker.CommandSendEvent;
-import com.autowp.canhacker.CommandSendEventClassListener;
+import com.autowp.elm327.Elm327;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.CanComfortException;
 import com.autowp.peugeot.CanComfortSpecs;
@@ -43,6 +40,9 @@ import javax.swing.JToolBar;
 import javax.swing.JTextField;
 import javax.swing.JTabbedPane;
 import javax.swing.JScrollPane;
+import javax.swing.JList;
+import javax.swing.AbstractListModel;
+import javax.swing.ListSelectionModel;
 
 public class Main {
 
@@ -56,6 +56,8 @@ public class Main {
     private CanFrameTable canMessageReceiveTable;
     
     private DisplayDialog displayDialog;
+    
+    private JList<String> list;
     
     private JComboBox<String> portNameBox;
     private final Action connectAction = new ConnectAction();
@@ -123,6 +125,7 @@ public class Main {
     /**
      * Initialize the contents of the frame.
      */
+    @SuppressWarnings({ "serial" })
     private void initialize() {
         disconnectAction.setEnabled(false);
         frame = new JFrame();
@@ -138,6 +141,20 @@ public class Main {
         this.client = createClient();
         
         JToolBar toolBar = new JToolBar();
+        
+        list = new JList<String>();
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setModel(new AbstractListModel<String>() {
+            String[] values = new String[] {"ELM327", "CanHacker"};
+            public int getSize() {
+                return values.length;
+            }
+            public String getElementAt(int index) {
+                return values[index];
+            }
+        });
+        list.setSelectedIndex(0);
+        toolBar.add(list);
         portNameBox = new JComboBox<String>(model);
         toolBar.add(portNameBox);
         
@@ -265,26 +282,53 @@ public class Main {
             if (!client.isConnected()) {
                 logCanhacker("Connecting\n");
                 
-                CanHacker canHacker = new CanHacker();
-                canHacker.setPortName((String) portNameBox.getSelectedItem());
-                canHacker.setSpeed(115200);
+                switch (list.getSelectedValue()) {
+                    case "ELM327":
+                        Elm327 elm327 = new Elm327();
+                        elm327.setPortName((String) portNameBox.getSelectedItem());
+                        
+                        elm327.addEventListener(new com.autowp.elm327.CommandSendEventClassListener() {
+                            @Override
+                            public void handleCommandSendEventClassEvent(com.autowp.elm327.CommandSendEvent e) {
+                                logCanhacker("-> " + e.getCommand().toString());
+                            }
+                        });
+                        
+                        elm327.addEventListener(new com.autowp.elm327.ResponseReceivedEventClassListener() {
+                            @Override
+                            public void handleResponseReceivedEventClassEvent(com.autowp.elm327.ResponseReceivedEvent e) {
+                                logCanhacker("<- " + e.getCommand().toString());
+                            }
+                        });
+                        
+                        client.setAdapter(elm327);
+                        
+                        break;
+                        
+                    case "CanHacker":
+                        CanHacker canHacker = new CanHacker();
+                        canHacker.setPortName((String) portNameBox.getSelectedItem());
+                        canHacker.setSpeed(115200);
+                        
+                        canHacker.addEventListener(new com.autowp.canhacker.CommandSendEventClassListener() {
+                            @Override
+                            public void handleCommandSendEventClassEvent(com.autowp.canhacker.CommandSendEvent e) {
+                                logCanhacker("-> " + e.getCommand().toString());
+                            }
+                        });
+                        
+                        canHacker.addEventListener(new com.autowp.canhacker.ResponseReceivedEventClassListener() {
+                            @Override
+                            public void handleResponseReceivedEventClassEvent(com.autowp.canhacker.ResponseReceivedEvent e) {
+                                logCanhacker("<- " + e.getCommand().toString());
+                            }
+                        });
+                        
+                        client.setAdapter(canHacker);
+                        break;
+
+                }
                 
-                canHacker.addEventListener(new CommandSendEventClassListener() {
-                    @Override
-                    public void handleCommandSendEventClassEvent(CommandSendEvent e) {
-                        logCanhacker("-> " + e.getCommand().toString());
-                    }
-                });
-                
-                canHacker.addEventListener(new ResponseReceivedEventClassListener() {
-                    @Override
-                    public void handleResponseReceivedEventClassEvent(ResponseReceivedEvent e) {
-                        logCanhacker("<- " + e.getCommand().toString());
-                    }
-                });
-                
-                client.setAdapter(canHacker);
-              
                 try {
                     client.connect();
                     logCanhacker("Connected");

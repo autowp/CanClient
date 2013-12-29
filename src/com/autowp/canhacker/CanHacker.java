@@ -226,7 +226,7 @@ public class CanHacker extends CanAdapter {
     public String getPortName()
     {
         return portName;
-    } 
+    }
     
     public CanHacker setSpeed(int speed)
     {

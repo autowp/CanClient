@@ -6,7 +6,6 @@ import javax.swing.JLabel;
 
 import java.awt.Color;
 import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import javax.swing.border.LineBorder;
 
 @SuppressWarnings("serial")

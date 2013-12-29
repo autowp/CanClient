@@ -1,14 +1,12 @@
 package com.autowp.peugeot.display;
 
 import javax.swing.JPanel;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import java.awt.Font;
 import java.awt.BorderLayout;
+import net.miginfocom.swing.MigLayout;
 
 @SuppressWarnings("serial")
 public class DisplayMainPanel extends JPanel {
@@ -29,23 +27,12 @@ public class DisplayMainPanel extends JPanel {
         Font font = new Font("Arial", Font.PLAIN, 14);
         
         setBackground(background);
-        GridBagLayout gridBagLayout = new GridBagLayout();
-        gridBagLayout.columnWidths = new int[] {0, 0, 0};
-        gridBagLayout.rowHeights = new int[] {0, 0};
-        gridBagLayout.columnWeights = new double[]{2.0, 1.0, 8.0};
-        gridBagLayout.rowWeights = new double[]{1.0, 5.0};
-        setLayout(gridBagLayout);
+        setLayout(new MigLayout("", "[40px,grow 40][40,grow 40][300px,grow 300]", "[31px][163px]"));
         
         upperPanel = new JPanel();
         upperPanel.setForeground(foreground);
         upperPanel.setBackground(background);
-        GridBagConstraints gbc_upperPanel = new GridBagConstraints();
-        gbc_upperPanel.gridwidth = 2;
-        gbc_upperPanel.insets = new Insets(0, 0, 5, 0);
-        gbc_upperPanel.fill = GridBagConstraints.BOTH;
-        gbc_upperPanel.gridx = 1;
-        gbc_upperPanel.gridy = 0;
-        add(upperPanel, gbc_upperPanel);
+        add(upperPanel, "cell 1 0 2 1,grow");
         upperPanel.setLayout(new BorderLayout(0, 0));
         
         temperatureLabel = new JLabel("--\u00B0");
@@ -65,23 +52,12 @@ public class DisplayMainPanel extends JPanel {
         sidePanel = new DisplaySideClimatPanel();
         sidePanel.setForeground(foreground);
         sidePanel.setBackground(background);
-        GridBagConstraints gbc_sidePanel = new GridBagConstraints();
-        gbc_sidePanel.anchor = GridBagConstraints.WEST;
-        gbc_sidePanel.gridwidth = 2;
-        gbc_sidePanel.insets = new Insets(0, 0, 0, 5);
-        gbc_sidePanel.fill = GridBagConstraints.VERTICAL;
-        gbc_sidePanel.gridx = 0;
-        gbc_sidePanel.gridy = 1;
-        add(sidePanel, gbc_sidePanel);
+        add(sidePanel, "cell 0 1 2 1,alignx left,growy");
         
         mainPanel = new DisplayAudioPanel();
         mainPanel.setForeground(foreground);
         mainPanel.setBackground(background);
-        GridBagConstraints gbc_mainPanel = new GridBagConstraints();
-        gbc_mainPanel.fill = GridBagConstraints.BOTH;
-        gbc_mainPanel.gridx = 2;
-        gbc_mainPanel.gridy = 1;
-        add(mainPanel, gbc_mainPanel);
+        add(mainPanel, "cell 2 1,grow");
         
     }
 

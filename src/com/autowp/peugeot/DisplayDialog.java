@@ -1,20 +1,13 @@
 package com.autowp.peugeot;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import com.autowp.canclient.CanClient;
 import com.autowp.peugeot.display.Display;
-import com.autowp.peugeot.display.DisplayMainPanel;
 import com.autowp.peugeot.display.DisplayPanel;
-import com.autowp.peugeot.display.TrackList;
 
 @SuppressWarnings("serial")
 public class DisplayDialog extends JDialog {
