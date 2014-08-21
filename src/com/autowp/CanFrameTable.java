@@ -8,8 +8,9 @@ import javax.swing.table.TableColumnModel;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 
-import com.autowp.canclient.CanFrame;
-import com.autowp.canclient.CanMessage;
+import com.autowp.can.CanFrame;
+import com.autowp.can.CanMessage;
+
 
 
 @SuppressWarnings("serial")

@@ -1,48 +1,44 @@
 package com.autowp;
 
-import gnu.io.CommPort;
-import gnu.io.CommPortIdentifier;
-import gnu.io.PortInUseException;
-
-import java.awt.EventQueue;
 import java.awt.BorderLayout;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Vector;
 
-import com.autowp.canclient.CanClient;
-import com.autowp.canclient.CanClientException;
-import com.autowp.canclient.CanFrameEvent;
-import com.autowp.canclient.CanFrameEventClassListener;
-import com.autowp.canclient.CanMessageEvent;
-import com.autowp.canclient.CanMessageEventClassListener;
-import com.autowp.canhacker.CanHacker;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractListModel;
+import javax.swing.Action;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
+
+import jssc.SerialPortList;
+
+import com.autowp.can.CanClient;
+import com.autowp.can.CanClientException;
+import com.autowp.can.CanFrameEvent;
+import com.autowp.can.CanFrameEventClassListener;
+import com.autowp.can.CanMessageEvent;
+import com.autowp.can.CanMessageEventClassListener;
+import com.autowp.canhacker.CanHackerSerial;
 import com.autowp.elm327.Elm327;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.CanComfortException;
 import com.autowp.peugeot.CanComfortSpecs;
-import com.autowp.peugeot.DisplayDialog;
-
-import javax.swing.JFrame;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JTextArea;
-import javax.swing.JComboBox;
-import javax.swing.JButton;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JMenu;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JToolBar;
-import javax.swing.JTextField;
-import javax.swing.JTabbedPane;
-import javax.swing.JScrollPane;
-import javax.swing.JList;
-import javax.swing.AbstractListModel;
-import javax.swing.ListSelectionModel;
+import com.autowp.peugeot.display.DisplayDialog;
 
 public class Main {
 
@@ -133,7 +129,7 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         
-        Vector<String> comboBoxItems = getAvailableSerialPorts();
+        String[] comboBoxItems = getAvailableSerialPorts();
         
         final DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(comboBoxItems);
         model.setSelectedItem("COM3");
@@ -249,28 +245,8 @@ public class Main {
         canhackerLogTextArea.append(str + "\n");
     }
     
-    public static Vector<String> getAvailableSerialPorts() {
-        Vector<String> h = new Vector<String>();
-        //HashSet<CommPortIdentifier> h = new HashSet<CommPortIdentifier>();
-        @SuppressWarnings("rawtypes")
-        Enumeration thePorts = CommPortIdentifier.getPortIdentifiers();
-        while (thePorts.hasMoreElements()) {
-            CommPortIdentifier com = (CommPortIdentifier) thePorts.nextElement();
-            switch (com.getPortType()) {
-            case CommPortIdentifier.PORT_SERIAL:
-                try {
-                    CommPort thePort = com.open("CommUtil", 50);
-                    thePort.close();
-                    h.add(com.getName());
-                } catch (PortInUseException e) {
-                    System.err.println("Port, "  + com.getName() + ", is in use.");
-                } catch (Exception e) {
-                    System.err.println("Failed to open port " +  com.getName());
-                    e.printStackTrace();
-                }
-            }
-        }
-        return h;
+    public static String[] getAvailableSerialPorts() {
+        return SerialPortList.getPortNames();
     }
     @SuppressWarnings("serial")
     private class ConnectAction extends AbstractAction {
@@ -306,7 +282,7 @@ public class Main {
                         break;
                         
                     case "CanHacker":
-                        CanHacker canHacker = new CanHacker();
+                        CanHackerSerial canHacker = new CanHackerSerial();
                         canHacker.setPortName((String) portNameBox.getSelectedItem());
                         canHacker.setSpeed(115200);
                         

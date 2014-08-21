@@ -11,13 +11,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
-import com.autowp.canclient.CanClient;
-import com.autowp.canclient.CanFrame;
-import com.autowp.canclient.CanFrameEvent;
-import com.autowp.canclient.CanFrameEventClassListener;
-import com.autowp.canclient.CanMessage;
-import com.autowp.canclient.CanMessageEvent;
-import com.autowp.canclient.CanMessageEventClassListener;
 
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -29,6 +22,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.swing.ListSelectionModel;
+
+import com.autowp.can.CanClient;
+import com.autowp.can.CanFilter;
+import com.autowp.can.CanFrame;
+import com.autowp.can.CanFrameEvent;
+import com.autowp.can.CanFrameEventClassListener;
+import com.autowp.can.CanMessage;
+import com.autowp.can.CanMessageEvent;
+import com.autowp.can.CanMessageEventClassListener;
 
 
 @SuppressWarnings("serial")

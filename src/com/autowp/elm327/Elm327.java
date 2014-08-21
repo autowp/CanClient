@@ -1,37 +1,24 @@
 package com.autowp.elm327;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TooManyListenersException;
+import jssc.SerialPort;
+import jssc.SerialPortEvent;
+import jssc.SerialPortEventListener;
+import jssc.SerialPortException;
 
-import gnu.io.CommPort;
-import gnu.io.CommPortIdentifier;
-import gnu.io.NoSuchPortException;
-import gnu.io.PortInUseException;
-import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
-import gnu.io.UnsupportedCommOperationException;
-
-import com.autowp.canclient.CanAdapter;
-import com.autowp.canclient.CanAdapterException;
-import com.autowp.canclient.CanFrame;
-import com.autowp.canclient.CanFrameException;
+import com.autowp.can.CanAdapter;
+import com.autowp.can.CanAdapterException;
+import com.autowp.can.CanFrame;
+import com.autowp.can.CanFrameException;
 import com.autowp.elm327.command.Command;
 import com.autowp.elm327.command.DefaultsCommand;
-import com.autowp.elm327.command.EchoOffCommand;
-import com.autowp.elm327.command.EchoOnCommand;
-import com.autowp.elm327.command.MonitorAllCommand;
-import com.autowp.elm327.command.ProgParameterOnCommand;
-import com.autowp.elm327.command.ProgParameterSetCommand;
 import com.autowp.elm327.command.ResetCommand;
 import com.autowp.elm327.command.SetHeaderCommand;
-import com.autowp.elm327.command.SetProtocolCommand;
 import com.autowp.elm327.command.TransmitCommand;
 import com.autowp.elm327.response.Response;
+import com.autowp.elm327.response.ResponseException;
 
 
 public class Elm327 extends CanAdapter {
@@ -64,6 +51,24 @@ public class Elm327 extends CanAdapter {
     public final byte PP_CAN_OPTIONS_DATA_FOMATTING_NONE = 0x00;
     public final byte PP_CAN_OPTIONS_DATA_FOMATTING_ISO15765_4 = 0x01;
     public final byte PP_CAN_OPTIONS_DATA_FOMATTING_SAE_J1939 = 0x02;
+    
+    protected class WaitForResponseReceivedEventClassListener implements ResponseReceivedEventClassListener {
+        protected WaitForResponse waitForResponse;
+        
+        public WaitForResponseReceivedEventClassListener(WaitForResponse w)
+        {
+            waitForResponse = w;
+        }
+        
+        @Override
+        public void handleResponseReceivedEventClassEvent(ResponseReceivedEvent e) throws Elm327Exception {
+            Response response = e.getCommand();
+            if (waitForResponse.match(response)) {
+                removeEventListener(this);
+                waitForResponse.execute(response);
+            }
+        }
+    }
 
     @Override
     public void send(CanFrame message) throws CanAdapterException {
@@ -82,24 +87,32 @@ public class Elm327 extends CanAdapter {
         this.fireFrameSentEvent(message);
     }
     
+    public synchronized Elm327 send(final Command c, final WaitForResponse w) throws Elm327Exception
+    {
+        final WaitForResponseReceivedEventClassListener listener = new WaitForResponseReceivedEventClassListener(w);
+        this.addEventListener(listener);
+        return this.send(c);
+    }
+    
     public synchronized Elm327 send(Command c) throws Elm327Exception
     {
         if (!this.isConnected()) {
             throw new Elm327Exception("ELM327 is not connected");
         }
         
-        String command = "AT" + c.toString() + COMMAND_DELIMITER;
+        String command = c.toString() + "\n\r";
+        
+        System.out.println("Command: " + command);
         
         try {
-            this.serialPort.getOutputStream().write(command.getBytes("ISO-8859-1"));
-            this.serialPort.getOutputStream().flush();
+            this.serialPort.writeString(command);
             
             fireCommandSendEvent(c);
             
-        } catch (IOException e) {
-            throw new Elm327Exception("I/O error: " + e.getMessage());
         } catch (CanFrameException e) {
             throw new Elm327Exception("Can frame error: " + e.getMessage());
+        } catch (SerialPortException e) {
+            throw new Elm327Exception("Serial port error: " + e.getMessage());
         }
                 
         return this;
@@ -111,26 +124,14 @@ public class Elm327 extends CanAdapter {
             return;
         }
         
-        CommPortIdentifier portIdentifier;
         try {
-            portIdentifier = CommPortIdentifier.getPortIdentifier(this.portName);
-        
-        
-            CommPort commPort = portIdentifier.open(this.getClass().getName(), 2000);
             
-            if (!(commPort instanceof SerialPort)) {            
-                throw new Elm327Exception(this.portName + " is not serial port");
-            }
-            
-            this.serialPort = (SerialPort)commPort;
-            
+            this.serialPort = new SerialPort(this.portName);
+            this.serialPort.openPort();
             this.serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
-            this.serialPort.setSerialPortParams(this.speed, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            this.serialPort.setParams(this.speed, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            serialPort.addEventListener(new SerialReader(), SerialPort.MASK_RXCHAR);
             
-            InputStream in = serialPort.getInputStream();
-            
-            serialPort.addEventListener(new SerialReader(in));
-            serialPort.notifyOnDataAvailable(true);
             
             /*byte divisor = 0; // baudrate = 500 / divisor
             switch (this.specs.getSpeed()) {
@@ -145,11 +146,30 @@ public class Elm327 extends CanAdapter {
                     throw new Elm327Exception("Unsupported bus speed");
             }*/
             
-            this.send(new ResetCommand());
+            //this.send(new EchoOnCommand());
+            //this.send(new CanSilentMonitorCommand(false));
+            this.send(new ResetCommand(), new WaitForResponse() {
+                @Override
+                public boolean match(Response response) {
+                    System.out.println("Matching: " + response.toString());
+                    System.out.println(response.toString().equals("ELM327 v1.5"));
+                    System.out.println(response.toString().length());
+                    System.out.println("ELM327 v1.5".length());
+                    return response.toString().equals("ELM327 v1.5");
+                }
+
+                @Override
+                public void execute(Response response) throws Elm327Exception {
+                    System.out.println("execute");
+                    send(new DefaultsCommand());
+                }
+            });
             this.send(new DefaultsCommand());
+            /*
+            this.send(new EchoOffCommand());
             this.send(new EchoOnCommand());
             this.send(new ProgParameterSetCommand(PP_CAN_ERROR_CHECKING, (byte)0x38));
-            this.send(new ProgParameterOnCommand(PP_CAN_ERROR_CHECKING));
+            this.send(new ProgParameterOnCommand(PP_CAN_ERROR_CHECKING));*/
             
             /*byte options = PP_CAN_OPTIONS_ID_LENGTH_11 
                          | PP_CAN_OPTIONS_DATE_LENGTH_VARIABLE 
@@ -162,11 +182,12 @@ public class Elm327 extends CanAdapter {
             this.send(new ProgParameterSetCommand(PP_PROTOCOL_B_BAUDRATE_DIVISOR, divisor));
             this.send(new ProgParameterOnCommand(PP_PROTOCOL_B_BAUDRATE_DIVISOR));*/
             
-            this.send(new SetProtocolCommand(SetProtocolCommand.USER1_CAN));
+            /*this.send(new SetProtocolCommand(SetProtocolCommand.USER1_CAN));
             
-            this.send(new MonitorAllCommand());
+            this.send(new MonitorAllCommand());*/
             
-        } catch (Elm327Exception | NoSuchPortException | PortInUseException | IOException | TooManyListenersException | UnsupportedCommOperationException e) {
+        } catch (Elm327Exception | SerialPortException e) {
+            this.serialPort = null;
             throw new CanAdapterException("Port error: " + e.getMessage());
         }
         
@@ -175,10 +196,14 @@ public class Elm327 extends CanAdapter {
     @Override
     public void disconnect() {
         if (this.serialPort != null) {
-            this.serialPort.notifyOnDataAvailable(false);
-            this.serialPort.removeEventListener();
-            this.serialPort.close();
-            
+            try {
+                this.serialPort.removeEventListener();
+                this.serialPort.closePort();
+            } catch (SerialPortException e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+
             this.serialPort = null;
         }
     }
@@ -227,11 +252,11 @@ public class Elm327 extends CanAdapter {
         responseReceivedListeners.remove(listener);
     }
     
-    private synchronized void fireResponseReceivedEvent(Response response) throws CanFrameException 
+    private synchronized void fireResponseReceivedEvent(Response response) throws CanFrameException, Elm327Exception 
     {
         ResponseReceivedEvent event = new ResponseReceivedEvent(this, response);
         Iterator<ResponseReceivedEventClassListener> i = responseReceivedListeners.iterator();
-        while(i.hasNext())  {
+        while (i.hasNext())  {
             ((ResponseReceivedEventClassListener) i.next()).handleResponseReceivedEventClassEvent(event);
         }
         
@@ -248,27 +273,23 @@ public class Elm327 extends CanAdapter {
      * Handles the input coming from the serial port. A new line character
      * is treated as the end of a block in this example. 
      */
-    private class SerialReader implements SerialPortEventListener 
+    private class SerialReader implements SerialPortEventListener  
     {
-        private InputStream in;
         private byte[] buffer = new byte[1024];
         private int bufferPos = 0;
         
-        public SerialReader (InputStream in)
-        {
-            this.in = in;
-        }
-        
-        public void serialEvent(SerialPortEvent evt) {
-            if (evt.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
-                
+        @Override
+        public void serialEvent(SerialPortEvent event) {
+            System.out.println("event");
+            if (event.isRXCHAR() && event.getEventValue() > 0) {
                 try {
-                    int data;
-                   
-                    while ((data = in.read()) > -1) {
+                    byte[] bytes = serialPort.readBytes();
+                    System.out.println(new String(bytes));
+                    for (int i=0; i<bytes.length; i++) {
+                        byte data = bytes[i];
                         char dataChar = (char)data;
                         if (dataChar != COMMAND_DELIMITER) {
-                            buffer[bufferPos++] = (byte)data;
+                            buffer[bufferPos++] = data;
                         }
                         
                         if (dataChar == COMMAND_DELIMITER) {
@@ -284,11 +305,10 @@ public class Elm327 extends CanAdapter {
                         byte[] commandBytes = new byte[bufferPos];
                         System.arraycopy(buffer, 0, commandBytes, 0, bufferPos);
                     }
-                    
-                } catch (Exception e) {
+                } catch (SerialPortException | ResponseException | CanFrameException | Elm327Exception e) {
                     e.printStackTrace();
                     System.exit(-1);
-                }             
+                }
             }
         }
     }

@@ -1,8 +1,5 @@
 package com.autowp.elm327.command;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 

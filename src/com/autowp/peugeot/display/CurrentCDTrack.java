@@ -5,8 +5,10 @@ import java.util.Arrays;
 import javax.swing.JLabel;
 import org.apache.commons.codec.binary.Hex;
 
-import com.autowp.canclient.CanMessage;
+import com.autowp.can.CanMessage;
 import com.autowp.peugeot.CanComfort;
+import com.autowp.peugeot.message.MessageException;
+import com.autowp.peugeot.message.Track;
 
 
 
@@ -56,7 +58,12 @@ public class CurrentCDTrack extends JLabel {
                     int textDataOffset = 4;
                     byte[] textData = new byte[data.length - textDataOffset];
                     System.arraycopy(data, textDataOffset, textData, 0, textData.length);
-                    track.readFromBytes(textData, trackAuthorExists, true);
+                    try {
+                        track.readFromBytes(textData, trackAuthorExists, true);
+                    } catch (MessageException e) {
+                        // TODO Auto-generated catch block
+                        throw new DisplayException(e.getMessage());
+                    }
                 }
                 
                 this.setVisible(true);

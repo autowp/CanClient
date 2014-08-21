@@ -1,7 +1,5 @@
 package com.autowp.elm327.response;
 
-import org.apache.commons.codec.binary.Hex;
-
 abstract public class Response {
     
     abstract public String toString();

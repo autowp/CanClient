@@ -11,8 +11,9 @@ import javax.swing.JPanel;
 
 import org.apache.commons.codec.binary.Hex;
 
-import com.autowp.canclient.CanMessage;
+import com.autowp.can.CanMessage;
 import com.autowp.peugeot.CanComfort;
+import com.autowp.peugeot.message.Track;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
