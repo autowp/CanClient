@@ -6,8 +6,6 @@ import java.util.TimerTask;
 
 import com.autowp.can.CanClient;
 import com.autowp.can.CanMessage;
-import com.autowp.can.CanMessageEvent;
-import com.autowp.can.CanMessageEventClassListener;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.message.CurrentCDTrackMessage;
 import com.autowp.peugeot.message.MessageException;
@@ -45,18 +43,18 @@ public class Display {
         this.add(volume, c);*/
         
         if (client != null) {
-            client.addEventListener(new CanMessageEventClassListener() {
+            client.addEventListener(new CanClient.OnCanMessageTransferListener() {
                 @Override
-                public void handleCanMessageReceivedEvent(CanMessageEvent e) {
+                public void handleCanMessageReceivedEvent(CanMessage message) {
                     try {
-                        processMessage(e.getMessage());
+                        processMessage(message);
                     } catch (Exception ex) {
                         ex.printStackTrace(System.err);
                     }
                 }
 
                 @Override
-                public void handleCanMessageSentEvent(CanMessageEvent e) {
+                public void handleCanMessageSentEvent(CanMessage message) {
                     // TODO Auto-generated method stub
                     
                 }

@@ -27,13 +27,15 @@ import javax.swing.ListSelectionModel;
 
 import jssc.SerialPortList;
 
+import com.autowp.arduinocan.ArduinoCanSerial;
 import com.autowp.can.CanClient;
 import com.autowp.can.CanClientException;
-import com.autowp.can.CanFrameEvent;
-import com.autowp.can.CanFrameEventClassListener;
-import com.autowp.can.CanMessageEvent;
-import com.autowp.can.CanMessageEventClassListener;
+import com.autowp.can.CanFrame;
+import com.autowp.can.CanMessage;
+import com.autowp.canhacker.CanHacker;
 import com.autowp.canhacker.CanHackerSerial;
+import com.autowp.canhacker.command.Command;
+import com.autowp.canhacker.response.Response;
 import com.autowp.elm327.Elm327;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.CanComfortException;
@@ -92,24 +94,24 @@ public class Main {
     {
         CanClient client = new CanClient(new CanComfortSpecs());
         
-        client.addEventListener(new CanFrameEventClassListener() {
+        client.addEventListener(new CanClient.OnCanFrameTransferListener() {
             @Override
-            public void handleCanFrameReceivedEvent(CanFrameEvent e) {
-                canReceiveTable.addCanFrame(e.getFrame());
+            public void handleCanFrameReceivedEvent(CanFrame frame) {
+                canReceiveTable.addCanFrame(frame);
             }
             @Override
-            public void handleCanFrameSentEvent(CanFrameEvent e) {
-                canSentTable.addCanFrame(e.getFrame());
+            public void handleCanFrameSentEvent(CanFrame frame) {
+                canSentTable.addCanFrame(frame);
             }
         });
         
-        client.addEventListener(new CanMessageEventClassListener() {
+        client.addEventListener(new CanClient.OnCanMessageTransferListener() {
             @Override
-            public void handleCanMessageReceivedEvent(CanMessageEvent e) {
-                canMessageReceiveTable.addCanMessage(e.getMessage());
+            public void handleCanMessageReceivedEvent(CanMessage message) {
+                canMessageReceiveTable.addCanMessage(message);
             }
             @Override
-            public void handleCanMessageSentEvent(CanMessageEvent e) {
+            public void handleCanMessageSentEvent(CanMessage message) {
                 // TODO Auto-generated method stub
                 
             }
@@ -132,7 +134,7 @@ public class Main {
         String[] comboBoxItems = getAvailableSerialPorts();
         
         final DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(comboBoxItems);
-        model.setSelectedItem("COM3");
+        model.setSelectedItem("COM5");
         
         this.client = createClient();
         
@@ -141,7 +143,7 @@ public class Main {
         list = new JList<String>();
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setModel(new AbstractListModel<String>() {
-            String[] values = new String[] {"ELM327", "CanHacker"};
+            String[] values = new String[] {"ArduinoCan", "ELM327", "CanHacker"};
             public int getSize() {
                 return values.length;
             }
@@ -259,11 +261,29 @@ public class Main {
                 logCanhacker("Connecting\n");
                 
                 switch (list.getSelectedValue()) {
+                    case "ArduinoCan":
+                        ArduinoCanSerial canAdapter = new ArduinoCanSerial();
+                        canAdapter.setPortName((String) portNameBox.getSelectedItem());
+                        
+                        canAdapter.addEventListener(new com.autowp.arduinocan.ArduinoCan.OnResponseReceivedListener() {
+
+                            @Override
+                            public void handleResponseReceivedEvent(
+                                    com.autowp.arduinocan.Response response) {
+                                logCanhacker("<- " + response.toString());
+                            }
+                            
+                        });
+                        
+                        client.setAdapter(canAdapter);
+                        
+                        break;
+                
                     case "ELM327":
                         Elm327 elm327 = new Elm327();
                         elm327.setPortName((String) portNameBox.getSelectedItem());
                         
-                        elm327.addEventListener(new com.autowp.elm327.CommandSendEventClassListener() {
+                        elm327.addEventListener(new com.autowp.elm327.CommandSendEventListener() {
                             @Override
                             public void handleCommandSendEventClassEvent(com.autowp.elm327.CommandSendEvent e) {
                                 logCanhacker("-> " + e.getCommand().toString());
@@ -286,17 +306,18 @@ public class Main {
                         canHacker.setPortName((String) portNameBox.getSelectedItem());
                         canHacker.setSpeed(115200);
                         
-                        canHacker.addEventListener(new com.autowp.canhacker.CommandSendEventClassListener() {
+                        canHacker.addEventListener(new CanHacker.OnCommandSentListener() {
                             @Override
-                            public void handleCommandSendEventClassEvent(com.autowp.canhacker.CommandSendEvent e) {
-                                logCanhacker("-> " + e.getCommand().toString());
+                            public void handleCommandSentEvent(Command command) {
+                                logCanhacker("-> " + command.toString());
                             }
                         });
                         
-                        canHacker.addEventListener(new com.autowp.canhacker.ResponseReceivedEventClassListener() {
+                        canHacker.addEventListener(new CanHacker.OnResponseReceivedListener() {
                             @Override
-                            public void handleResponseReceivedEventClassEvent(com.autowp.canhacker.ResponseReceivedEvent e) {
-                                logCanhacker("<- " + e.getCommand().toString());
+                            public void handleResponseReceivedEvent(
+                                    Response response) {
+                                logCanhacker("<- " + response.toString());
                             }
                         });
                         
@@ -305,10 +326,12 @@ public class Main {
 
                 }
                 
+                logCanhacker("Connecting ...");
+                
                 try {
                     client.connect();
                     logCanhacker("Connected");
-                    CanComfort.emulateCar(client, vinTextField.getText());
+                    CanComfort.emulateBSIIgnition(client, vinTextField.getText());
                     logCanhacker("Emulation started");
                 } catch (CanClientException e1) {
                     logCanhacker("Can client error: " + e1.getMessage());
@@ -330,9 +353,9 @@ public class Main {
         }
         public void actionPerformed(ActionEvent e) {
             if (client.isConnected()) {
-                logCanhacker("Disconnecting\n");
+                logCanhacker("Disconnecting");
                 client.disconnect();
-                logCanhacker("Disconnected\n");
+                logCanhacker("Disconnected");
             }
             
             connectAction.setEnabled(!client.isConnected());

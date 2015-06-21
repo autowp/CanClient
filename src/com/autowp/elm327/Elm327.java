@@ -28,7 +28,7 @@ public class Elm327 extends CanAdapter {
     
     private static final char COMMAND_DELIMITER = '\r';
     
-    private List<CommandSendEventClassListener> commandSendListeners = new ArrayList<CommandSendEventClassListener>();
+    private List<CommandSendEventListener> commandSendListeners = new ArrayList<CommandSendEventListener>();
     
     private List<ResponseReceivedEventClassListener> responseReceivedListeners = new ArrayList<ResponseReceivedEventClassListener>();
     
@@ -228,9 +228,9 @@ public class Elm327 extends CanAdapter {
     private synchronized void fireCommandSendEvent(Command command) throws CanFrameException
     {
         CommandSendEvent event = new CommandSendEvent(this, command);
-        Iterator<CommandSendEventClassListener> i = commandSendListeners.iterator();
+        Iterator<CommandSendEventListener> i = commandSendListeners.iterator();
         while(i.hasNext())  {
-            ((CommandSendEventClassListener) i.next()).handleCommandSendEventClassEvent(event);
+            ((CommandSendEventListener) i.next()).handleCommandSendEventClassEvent(event);
         }
         
         /*if (command instanceof TransmitCommand) {
@@ -313,7 +313,7 @@ public class Elm327 extends CanAdapter {
         }
     }
 
-    public void addEventListener(CommandSendEventClassListener listener) {
+    public void addEventListener(CommandSendEventListener listener) {
         commandSendListeners.add(listener);
     }
 }

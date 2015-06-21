@@ -21,16 +21,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
 import javax.swing.ListSelectionModel;
 
 import com.autowp.can.CanClient;
 import com.autowp.can.CanFilter;
 import com.autowp.can.CanFrame;
-import com.autowp.can.CanFrameEvent;
-import com.autowp.can.CanFrameEventClassListener;
 import com.autowp.can.CanMessage;
-import com.autowp.can.CanMessageEvent;
-import com.autowp.can.CanMessageEventClassListener;
 
 
 @SuppressWarnings("serial")
@@ -40,9 +37,9 @@ public class CanFilterFrame extends JFrame {
     private CanFrameTable table;
     private CanFilter filter = new CanFilter();
     
-    private CanFrameEventClassListener frameListener;
+    private CanClient.OnCanFrameTransferListener mFrameListener;
     
-    private CanMessageEventClassListener messageListener;
+    private CanClient.OnCanMessageTransferListener mMessageListener;
     
     private JTextField textField;
     private JButton applyFilterButton;
@@ -173,53 +170,53 @@ public class CanFilterFrame extends JFrame {
         dtm.setRowCount(0);
     }
     
-    protected CanFrameEventClassListener getFrameListener()
+    protected CanClient.OnCanFrameTransferListener getFrameListener()
     {
-        if (frameListener == null) {
-            frameListener = new CanFrameEventClassListener() {
+        if (mFrameListener == null) {
+            mFrameListener = new CanClient.OnCanFrameTransferListener() {
+
                 @Override
-                public void handleCanFrameReceivedEvent(CanFrameEvent e) {
+                public void handleCanFrameReceivedEvent(CanFrame frame) {
                     if (filter != null) {
-                        CanFrame frame = e.getFrame();
                         if (filter.match(frame)) {
                             table.addCanFrame(frame);
                         }
                     }
                 }
-    
+
                 @Override
-                public void handleCanFrameSentEvent(CanFrameEvent e) {
+                public void handleCanFrameSentEvent(CanFrame frame) {
                     // TODO Auto-generated method stub
                     
                 }
+
             };
         }
         
-        return frameListener;
+        return mFrameListener;
     }
     
-    protected CanMessageEventClassListener getMessageListener()
+    protected CanClient.OnCanMessageTransferListener getMessageListener()
     {
-        if (messageListener == null) {
-            messageListener = new CanMessageEventClassListener() {
-    
+        if (mMessageListener == null) {
+            mMessageListener = new CanClient.OnCanMessageTransferListener() {
+
                 @Override
-                public void handleCanMessageReceivedEvent(CanMessageEvent e) {
+                public void handleCanMessageReceivedEvent(CanMessage message) {
                     if (filter != null) {
-                        CanMessage message = e.getMessage();
                         if (filter.match(message)) {
                             table.addCanMessage(message);
                         }
                     }
                 }
-    
+
                 @Override
-                public void handleCanMessageSentEvent(CanMessageEvent e) {
+                public void handleCanMessageSentEvent(CanMessage message) {
                     // TODO Auto-generated method stub
                     
                 }
             };
         }
-        return messageListener;
+        return mMessageListener;
     }
 }

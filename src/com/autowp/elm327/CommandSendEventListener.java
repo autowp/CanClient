@@ -1,5 +1,5 @@
 package com.autowp.elm327;
 
-public interface CommandSendEventClassListener {
+public interface CommandSendEventListener {
     public void handleCommandSendEventClassEvent(CommandSendEvent e);
 }
