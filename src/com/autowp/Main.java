@@ -36,6 +36,7 @@ import com.autowp.canhacker.CanHacker;
 import com.autowp.canhacker.CanHackerSerial;
 import com.autowp.canhacker.command.Command;
 import com.autowp.canhacker.response.Response;
+import com.autowp.dashboard.DashboardDialog;
 import com.autowp.elm327.Elm327;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.CanComfortException;
@@ -54,6 +55,7 @@ public class Main {
     private CanFrameTable canMessageReceiveTable;
     
     private DisplayDialog displayDialog;
+    private DashboardDialog dashboardDialog;
     
     private JList<String> list;
     
@@ -66,6 +68,7 @@ public class Main {
     private ArrayList<CanFilterFrame> filterFrames = new ArrayList<CanFilterFrame>();
     private final Action showDisplayAction = new ShowDisplayAction();
     private final Action createMessageFilterAction = new CreateMessageFilterAction();
+    private final Action showDashboardAction = new ShowDashboardAction();
 
     /**
      * Launch the application.
@@ -226,20 +229,11 @@ public class Main {
         JMenuItem displayMenuItem = new JMenuItem("Show display");
         displayMenuItem.setAction(showDisplayAction);
         mnNewMenu_1.add(displayMenuItem);
+        
+        JMenuItem dashboardMenuItem = new JMenuItem("Show dashboard");
+        dashboardMenuItem.setAction(showDashboardAction);
+        mnNewMenu_1.add(dashboardMenuItem);
 
-        /*
-        connectButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                AbstractButton abstractButton = (JToggleButton) actionEvent.getSource();
-                if (abstractButton.isSelected()) {
-                    connect();
-                    abstractButton.setSelected(client.isConnected());
-                } else {
-                    disconnect();
-                }
-            }
-        });
-        */
     }
     
     protected void logCanhacker(String str)
@@ -404,6 +398,20 @@ public class Main {
             }
             displayDialog.setVisible(true);
             displayDialog.toFront();
+        }
+    }
+    private class ShowDashboardAction extends AbstractAction {
+        private static final long serialVersionUID = 1L;
+        public ShowDashboardAction() {
+            putValue(NAME, "Show dashboard");
+            putValue(SHORT_DESCRIPTION, "Show dashboard");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (dashboardDialog == null) {
+                dashboardDialog = new DashboardDialog(client);
+            }
+            dashboardDialog.setVisible(true);
+            dashboardDialog.toFront();
         }
     }
     @SuppressWarnings("serial")
