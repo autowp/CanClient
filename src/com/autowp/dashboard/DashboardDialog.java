@@ -10,6 +10,7 @@ import com.autowp.can.CanMessage;
 import javax.swing.JTable;
 
 import java.awt.BorderLayout;
+import javax.swing.JScrollPane;
 
 public class DashboardDialog extends JDialog {
 
@@ -39,8 +40,11 @@ public class DashboardDialog extends JDialog {
     public DashboardDialog(CanClient client) {
         setBounds(100, 100, 450, 300);
         
+        JScrollPane scrollPane = new JScrollPane();
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
+        
         table = new DashboardTable();
-        getContentPane().add(table, BorderLayout.CENTER);
+        scrollPane.setViewportView(table);
         
         if (client != null) {
             client.addEventListener(new CanClient.OnCanMessageTransferListener() {

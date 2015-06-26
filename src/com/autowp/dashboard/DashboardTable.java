@@ -7,6 +7,8 @@ import javax.swing.table.TableColumnModel;
 
 import com.autowp.can.CanMessage;
 import com.autowp.peugeot.CanComfort;
+import com.autowp.peugeot.message.AudioMenuMessage;
+import com.autowp.peugeot.message.CurrentCDTrackInfoMessage;
 import com.autowp.peugeot.message.CurrentCDTrackMessage;
 import com.autowp.peugeot.message.MessageException;
 import com.autowp.peugeot.message.ParktronicMessage;
@@ -18,6 +20,8 @@ import com.autowp.peugeot.message.VolumeMessage;
 public class DashboardTable extends JTable {
 
     private static final long serialVersionUID = 1L;
+    
+    private String[] columnNames = {"Key", "Value"};
 
     public DashboardTable()
     {
@@ -47,65 +51,34 @@ public class DashboardTable extends JTable {
         TableColumnModel tcm = this.getColumnModel();
         tcm.getColumn(0).setPreferredWidth(50);
         tcm.getColumn(1).setPreferredWidth(50);
+        
+        this.setAutoCreateRowSorter(true);
     }
     
-    public void addCanMessage(CanMessage message)
+    @Override
+    public String getColumnName(int columnIndex) {
+        return columnNames[columnIndex];
+    }
+    
+    private void addPair(String key, boolean value)
     {
-        String key = "";
-        String value = "";
-        
-        try {
-            switch (message.getId()) {
-                case CanComfort.ID_TRACK_LIST:
-                    //trackList.processMessage(message);
-                    break;
-                    
-                case CanComfort.ID_VOLUME: {
-                    
-                    VolumeMessage peugeotMessage = new VolumeMessage(message);
-                    
-                    key = "Volume";
-                    value = Integer.toString(peugeotMessage.getVolume());
-                    
-                    break;
-                }
-                    
-                case CanComfort.ID_CURRENT_CD_TRACK: {
-                    
-                    CurrentCDTrackMessage peugeotMessage = new CurrentCDTrackMessage(message);
-                    Track track = peugeotMessage.getTrack();
-                    
-                    key = "Current CD Track";
-                    value = track.getCompleteName("/", "-");
-                    break;
-                }
-                
-                case CanComfort.ID_PARKTRONIC:
-                    ParktronicMessage pm = new ParktronicMessage(message);
-                    
-                    key = "Parktronic";
-                    value = pm.getFrontLeft() + " - " + pm.getFrontCenter() + " - " + pm.getFrontRight() + " / " +
-                            pm.getRearLeft() + " - " + pm.getRearCenter() + " - " + pm.getRearRight() + " / " +
-                            (pm.getShow() ? "Show" : "Don't show") + " / " +
-                            (pm.getSoundEnabled() ? "Sound enabled" : "Sound disabled") + " / " + 
-                            "Period: " + pm.getSoundPeriod();
-                    
-                    break;
-                    
-                default:
-                    // just skip
-            }
-            
-        } catch (MessageException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-            
+        addPair(key, value ? "true" : "false");
+    }
+    
+    private void addPair(String key, int value)
+    {
+        addPair(key, new Integer(value).toString());
+    }
+    
+    private void addPair(String key, String value)
+    {
         DefaultTableModel model = (DefaultTableModel)this.getModel();
         
         boolean found = false;
         for (int i=0; i<model.getRowCount(); i++) {
-            if (model.getValueAt(i, 0) == key) {
+            String val = model.getValueAt(i, 0).toString();
+            int equals = val.compareTo(key);
+            if (equals == 0) {
                 model.setValueAt(value, i, 1);
                 found = true;
                 break;
@@ -120,5 +93,101 @@ public class DashboardTable extends JTable {
                 }
             );
         }
+    }
+    
+    public void addCanMessage(CanMessage message)
+    {
+        String value = "";
+        
+        try {
+            switch (message.getId()) {
+                case CanComfort.ID_TRACK_LIST:
+                    //trackList.processMessage(message);
+                    break;
+                    
+                case CanComfort.ID_VOLUME: {
+                    
+                    VolumeMessage peugeotMessage = new VolumeMessage(message);
+                    
+                    value = Integer.toString(peugeotMessage.getVolume());
+                    
+                    addPair("Volume", value);
+                    
+                    break;
+                }
+                    
+                case CanComfort.ID_CURRENT_CD_TRACK: {
+                    
+                    CurrentCDTrackMessage peugeotMessage = new CurrentCDTrackMessage(message);
+                    Track track = peugeotMessage.getTrack();
+                    
+                    addPair("Current CD Track", track.getCompleteName("/", "-"));
+                    break;
+                }
+                
+                case CanComfort.ID_PARKTRONIC:
+                    ParktronicMessage pm = new ParktronicMessage(message);
+                    
+                    addPair("Parktronic / FrontLeft", pm.getFrontLeft());
+                    addPair("Parktronic / FrontCenter", pm.getFrontCenter());
+                    addPair("Parktronic / FrontRight", pm.getFrontRight());
+                    addPair("Parktronic / RearLeft", pm.getRearLeft());
+                    addPair("Parktronic / RearCenter", pm.getRearCenter());
+                    addPair("Parktronic / RearRight", pm.getRearRight());
+                    addPair("Parktronic / Show", pm.getShow() ? "Show" : "Don't show");
+                    addPair("Parktronic / Sound", pm.getSoundEnabled() ? "Enabled" : "Disabled");
+                    addPair("Parktronic / Sound Period", pm.getSoundPeriod());
+                    
+                    break;
+                    
+                case CanComfort.ID_AUDIO_MENU:
+                    
+                    AudioMenuMessage am = new AudioMenuMessage(message);
+                    
+                    addPair("AudioMenu / SideBalance", am.getSideBalance());
+                    addPair("AudioMenu / Balance", am.getBalance());
+                    addPair("AudioMenu / ShowSideBalance", am.isShowSideBalance());
+                    addPair("AudioMenu / ShowTreble", am.isShowTreble());
+                    addPair("AudioMenu / ShowBass", am.isShowBass());
+                    addPair("AudioMenu / ShowBalance", am.isShowBalance());
+                    addPair("AudioMenu / Bass", am.getBass());
+                    addPair("AudioMenu / Treble", am.getTreble());
+                    addPair("AudioMenu / ShowLoudnessCorrection", am.isShowLoudnessCorrection());
+                    addPair("AudioMenu / LoudnessCorrection", am.isLoudnessCorrection());
+                    addPair("AudioMenu / ShowAutomaticVolume", am.isShowAutomaticVolume());
+                    addPair("AudioMenu / AutomaticVolume", am.isAutomaticVolume());
+                    addPair("AudioMenu / ShowMusicalAmbiance", am.isShowMusicalAmbiance());
+                    addPair("AudioMenu / MusicalAmbiance", am.getMusicalAmbianceName());
+
+                    break;
+                    
+                case CanComfort.ID_CURRENT_CD_TRACK_INFO:
+                    
+                    CurrentCDTrackInfoMessage cctim = new CurrentCDTrackInfoMessage(message);
+                    
+                    addPair("CurrentCDTrackInfo / TrackNumber", cctim.getTrackNumber());
+                    addPair("CurrentCDTrackInfo / Time", String.format("%02d:%02d", cctim.getMinutes(), cctim.getSeconds()));
+                    
+                    break;
+                    
+                default:
+                    String key = String.format("%03X", message.getId()).toString();
+                    for (byte b : message.getData()) {
+                        value += String.format("%02X ", b);
+                    }
+                    addPair(key, value);
+            }
+            
+        } catch (MessageException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+            
+        
+    }
+
+    private void isShowLoudnessCorrection() {
+        // TODO Auto-generated method stub
+        
     }
 }
