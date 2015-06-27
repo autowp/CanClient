@@ -5,6 +5,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
+import org.apache.commons.codec.binary.Hex;
+
 import com.autowp.can.CanMessage;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.message.AudioMenuMessage;
@@ -12,6 +14,7 @@ import com.autowp.peugeot.message.CurrentCDTrackInfoMessage;
 import com.autowp.peugeot.message.CurrentCDTrackMessage;
 import com.autowp.peugeot.message.MessageException;
 import com.autowp.peugeot.message.ParktronicMessage;
+import com.autowp.peugeot.message.TimeMessage;
 import com.autowp.peugeot.message.Track;
 import com.autowp.peugeot.message.VolumeMessage;
 
@@ -97,8 +100,6 @@ public class DashboardTable extends JTable {
     
     public void addCanMessage(CanMessage message)
     {
-        String value = "";
-        
         try {
             switch (message.getId()) {
                 case CanComfort.ID_TRACK_LIST:
@@ -109,9 +110,7 @@ public class DashboardTable extends JTable {
                     
                     VolumeMessage peugeotMessage = new VolumeMessage(message);
                     
-                    value = Integer.toString(peugeotMessage.getVolume());
-                    
-                    addPair("Volume", value);
+                    addPair("Volume", peugeotMessage.getVolume());
                     
                     break;
                 }
@@ -166,16 +165,34 @@ public class DashboardTable extends JTable {
                     CurrentCDTrackInfoMessage cctim = new CurrentCDTrackInfoMessage(message);
                     
                     addPair("CurrentCDTrackInfo / TrackNumber", cctim.getTrackNumber());
-                    addPair("CurrentCDTrackInfo / Time", String.format("%02d:%02d", cctim.getMinutes(), cctim.getSeconds()));
+                    addPair("CurrentCDTrackInfo / Time", String.format(
+                        "%s of %s", 
+                        cctim.getCurrentTime(), cctim.getTotalTime()
+                    ));
+                    addPair("CurrentCDTrackInfo / SomeValue", cctim.getSomeValue());
+                    
+                    break;
+                    
+                case CanComfort.ID_TIME:
+                    
+                    TimeMessage tm = new TimeMessage(message);
+                    String value = "";
+                    for (byte b : message.getData()) {
+                        value += String.format("%02X ", b);
+                    }
+                    addPair("Time / Hex", value);
+                    addPair("Time", tm.getTimeString());
+                    addPair("Time / Format", tm.isTimeFormat24() ? "24h" : "12h");
                     
                     break;
                     
                 default:
                     String key = String.format("%03X", message.getId()).toString();
+                    String val = "";
                     for (byte b : message.getData()) {
-                        value += String.format("%02X ", b);
+                        val += String.format("%02X ", b);
                     }
-                    addPair(key, value);
+                    addPair(key, val);
             }
             
         } catch (MessageException e) {

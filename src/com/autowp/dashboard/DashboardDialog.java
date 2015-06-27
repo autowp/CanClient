@@ -38,6 +38,7 @@ public class DashboardDialog extends JDialog {
      * Create the dialog.
      */
     public DashboardDialog(CanClient client) {
+        setTitle("Dashboard");
         setBounds(100, 100, 450, 300);
         
         JScrollPane scrollPane = new JScrollPane();
