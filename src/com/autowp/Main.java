@@ -42,6 +42,7 @@ import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.CanComfortException;
 import com.autowp.peugeot.CanComfortSpecs;
 import com.autowp.peugeot.display.DisplayDialog;
+import com.autowp.sender.SenderDialog;
 
 public class Main {
 
@@ -69,6 +70,9 @@ public class Main {
     private final Action showDisplayAction = new ShowDisplayAction();
     private final Action createMessageFilterAction = new CreateMessageFilterAction();
     private final Action showDashboardAction = new ShowDashboardAction();
+    private final Action showSenderAction = new ShowSenderAction();
+
+    public SenderDialog senderDialog;
 
     /**
      * Launch the application.
@@ -233,6 +237,10 @@ public class Main {
         JMenuItem dashboardMenuItem = new JMenuItem("Show dashboard");
         dashboardMenuItem.setAction(showDashboardAction);
         mnNewMenu_1.add(dashboardMenuItem);
+        
+        JMenuItem mntmShowSender = new JMenuItem("Show sender");
+        mntmShowSender.setAction(showSenderAction);
+        mnNewMenu_1.add(mntmShowSender);
 
     }
     
@@ -259,7 +267,7 @@ public class Main {
                         ArduinoCanSerial canAdapter = new ArduinoCanSerial();
                         canAdapter.setPortName((String) portNameBox.getSelectedItem());
                         
-                        canAdapter.addEventListener(new com.autowp.arduinocan.ArduinoCan.OnResponseReceivedListener() {
+                        /*canAdapter.addEventListener(new com.autowp.arduinocan.ArduinoCan.OnResponseReceivedListener() {
 
                             @Override
                             public void handleResponseReceivedEvent(
@@ -267,7 +275,7 @@ public class Main {
                                 logCanhacker("<- " + response.toString());
                             }
                             
-                        });
+                        });*/
                         
                         client.setAdapter(canAdapter);
                         
@@ -431,6 +439,20 @@ public class Main {
                     filterFrames.remove(filterFrame);
                 }
             });
+        }
+    }
+    private class ShowSenderAction extends AbstractAction {
+        private static final long serialVersionUID = 1L;
+        public ShowSenderAction() {
+            putValue(NAME, "Show sender");
+            putValue(SHORT_DESCRIPTION, "Some short description");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (senderDialog == null) {
+                senderDialog = new SenderDialog(client);
+            }
+            senderDialog.setVisible(true);
+            senderDialog.toFront();
         }
     }
 }
