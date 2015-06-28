@@ -5,15 +5,16 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-import org.apache.commons.codec.binary.Hex;
-
 import com.autowp.can.CanMessage;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.message.AudioMenuMessage;
+import com.autowp.peugeot.message.ColumnKeypadMessage;
 import com.autowp.peugeot.message.CurrentCDTrackInfoMessage;
 import com.autowp.peugeot.message.CurrentCDTrackMessage;
 import com.autowp.peugeot.message.MessageException;
 import com.autowp.peugeot.message.ParktronicMessage;
+import com.autowp.peugeot.message.RDSMessage;
+import com.autowp.peugeot.message.RadioKeypadMessage;
 import com.autowp.peugeot.message.TimeMessage;
 import com.autowp.peugeot.message.Track;
 import com.autowp.peugeot.message.VolumeMessage;
@@ -186,6 +187,64 @@ public class DashboardTable extends JTable {
                     
                     break;
                     
+                case CanComfort.ID_COLUMN_KEYPAD:
+                    ColumnKeypadMessage ckm = new ColumnKeypadMessage(message);
+                    
+                    
+                    String ckmValue = "";
+                    for (byte b : message.getData()) {
+                        ckmValue += String.format("%02X ", b);
+                    }
+                    
+                    addPair("ColumnKeypad / Hex", ckmValue);
+                    addPair("ColumnKeypad / Forward press", ckm.isForward());
+                    addPair("ColumnKeypad / Backward press", ckm.isBackward());
+                    addPair("ColumnKeypad / UnknownValue press", ckm.getUnknownValue());
+                    addPair("ColumnKeypad / VolumeUp press", ckm.isVolumeUp());
+                    addPair("ColumnKeypad / VolumeDown press", ckm.isVolumeDown());
+                    addPair("ColumnKeypad / Source press", ckm.isSource());
+                    
+                    break;
+                    
+                case CanComfort.ID_RDS:
+                    RDSMessage rum = new RDSMessage(message);
+                    
+                    String rumValue = "";
+                    for (byte b : message.getData()) {
+                        rumValue += String.format("%02X ", b);
+                    }
+                    
+                    addPair("RDS / Hex", rumValue);
+                    addPair("RDS / TA", rum.isTA());
+                    addPair("RDS / Show PTY Menu", rum.isShowPTYMenu());
+                    addPair("RDS / PTY", rum.isPTY());
+                    addPair("RDS / PTY Value", rum.getPTYValueString());
+                    
+                    break;
+                    
+                case CanComfort.ID_RADIO_KEYPAD:
+                    RadioKeypadMessage rkm = new RadioKeypadMessage(message);
+                    
+                    String rkmValue = "";
+                    for (byte b : message.getData()) {
+                        rkmValue += String.format("%02X ", b);
+                    }
+                    
+                    addPair("RadioKeypad / Hex", rkmValue);
+                    addPair("RadioKeypad / Audio press", rkm.isAudio());
+                    addPair("RadioKeypad / Clim  press", rkm.isClim());
+                    addPair("RadioKeypad / Dark press", rkm.isDark());
+                    addPair("RadioKeypad / Down press", rkm.isDown());
+                    addPair("RadioKeypad / ESC press", rkm.isESC());
+                    addPair("RadioKeypad / Left press", rkm.isLeft());
+                    addPair("RadioKeypad / Menu press", rkm.isMenu());
+                    addPair("RadioKeypad / Ok press", rkm.isOk());
+                    addPair("RadioKeypad / Right press", rkm.isRight());
+                    addPair("RadioKeypad / Trip press", rkm.isTrip());
+                    addPair("RadioKeypad / Up press", rkm.isUp());
+                   
+                    break;
+                    
                 default:
                     String key = String.format("%03X", message.getId()).toString();
                     String val = "";
@@ -203,8 +262,4 @@ public class DashboardTable extends JTable {
         
     }
 
-    private void isShowLoudnessCorrection() {
-        // TODO Auto-generated method stub
-        
-    }
 }

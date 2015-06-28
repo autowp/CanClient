@@ -41,6 +41,7 @@ import com.autowp.elm327.Elm327;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.CanComfortException;
 import com.autowp.peugeot.CanComfortSpecs;
+import com.autowp.peugeot.columnkeypad.ColumnKeypadDialog;
 import com.autowp.peugeot.display.DisplayDialog;
 import com.autowp.sender.SenderDialog;
 
@@ -71,8 +72,11 @@ public class Main {
     private final Action createMessageFilterAction = new CreateMessageFilterAction();
     private final Action showDashboardAction = new ShowDashboardAction();
     private final Action showSenderAction = new ShowSenderAction();
+    private final Action showColumnKeypadAction = new ShowColumnKeypadAction();
 
     public SenderDialog senderDialog;
+
+    public ColumnKeypadDialog columnKeypadDialog;
 
     /**
      * Launch the application.
@@ -241,6 +245,11 @@ public class Main {
         JMenuItem mntmShowSender = new JMenuItem("Show sender");
         mntmShowSender.setAction(showSenderAction);
         mnNewMenu_1.add(mntmShowSender);
+        
+        JMenuItem mntmShowColumnKeypad = new JMenuItem("Show column keypad");
+        mntmShowColumnKeypad.setAction(showColumnKeypadAction);
+        mnNewMenu_1.add(mntmShowColumnKeypad);
+        
 
     }
     
@@ -453,6 +462,20 @@ public class Main {
             }
             senderDialog.setVisible(true);
             senderDialog.toFront();
+        }
+    }
+    private class ShowColumnKeypadAction extends AbstractAction {
+        private static final long serialVersionUID = 1L;
+        public ShowColumnKeypadAction() {
+            putValue(NAME, "Show column keypad");
+            putValue(SHORT_DESCRIPTION, "Some short description");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (columnKeypadDialog == null) {
+                columnKeypadDialog = new ColumnKeypadDialog(client);
+            }
+            columnKeypadDialog.setVisible(true);
+            columnKeypadDialog.toFront();
         }
     }
 }
