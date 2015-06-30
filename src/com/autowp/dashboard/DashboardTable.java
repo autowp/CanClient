@@ -1,11 +1,21 @@
 package com.autowp.dashboard;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
+import com.autowp.can.CanClient;
+import com.autowp.can.CanClientException;
+import com.autowp.can.CanFrame;
 import com.autowp.can.CanMessage;
+import com.autowp.can.CanClient.FrameTimerTask;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.message.AudioMenuMessage;
 import com.autowp.peugeot.message.ColumnKeypadMessage;
@@ -24,8 +34,48 @@ import com.autowp.peugeot.message.VolumeMessage;
 public class DashboardTable extends JTable {
 
     private static final long serialVersionUID = 1L;
+
+    private static final int VALUE_COLUMN = 1;
+
+    private static final int CHANGED_COLUMN = 2;
+
+    public static final long BLINK_TIME = 3000;
     
     private String[] columnNames = {"Key", "Value"};
+    
+
+    
+    private class CustomRenderer extends DefaultTableCellRenderer
+    {
+        private static final long serialVersionUID = 1L;
+
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+        {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            
+            if (column == VALUE_COLUMN) {
+                DefaultTableModel model = (DefaultTableModel)table.getModel();
+                Long cTime = (Long)model.getValueAt(row, CHANGED_COLUMN);
+                
+                if (System.currentTimeMillis() - cTime <= BLINK_TIME) {
+                    setForeground(Color.blue);
+                } else {
+                    this.setForeground(Color.black);
+                }
+            }
+            return c;
+        }
+    }
+    
+    private class BlinkTask extends TimerTask {
+        public void run() {
+            DefaultTableModel model = (DefaultTableModel)getModel();
+            int rowCount = model.getRowCount();
+            for (int i=0; i<rowCount; i++) {
+                model.fireTableCellUpdated(i, CHANGED_COLUMN);
+            }
+        }
+    }
 
     public DashboardTable()
     {
@@ -33,17 +83,21 @@ public class DashboardTable extends JTable {
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.setShowVerticalLines(true);
         this.setShowHorizontalLines(true);
+        
+        Timer timer = new Timer();
+        timer.schedule(new BlinkTask(), 0, BLINK_TIME / 10);
+        
         @SuppressWarnings("serial")
         DefaultTableModel model = new DefaultTableModel(
             new Object[][] {
             },
             new String[] {
-                "Param", "Value"
+                "Param", "Value", "Changed"
             }
         ) {
             @SuppressWarnings("rawtypes")
             Class[] columnTypes = new Class[] {
-                String.class, String.class
+                String.class, String.class, Long.class
             };
             @SuppressWarnings({ "unchecked", "rawtypes" })
             public Class getColumnClass(int columnIndex) {
@@ -51,6 +105,8 @@ public class DashboardTable extends JTable {
             }
         };
         this.setModel(model);
+        
+        this.getColumnModel().getColumn(1).setCellRenderer(new CustomRenderer());
         
         TableColumnModel tcm = this.getColumnModel();
         tcm.getColumn(0).setPreferredWidth(50);
@@ -83,7 +139,13 @@ public class DashboardTable extends JTable {
             String val = model.getValueAt(i, 0).toString();
             int equals = val.compareTo(key);
             if (equals == 0) {
-                model.setValueAt(value, i, 1);
+                String prevValue = model.getValueAt(i, 1).toString();
+                model.setValueAt(value, i, VALUE_COLUMN);
+                if (!prevValue.equals(value)) {
+                    long cTime = System.currentTimeMillis();
+                    model.setValueAt(cTime, i, CHANGED_COLUMN);
+                }
+                
                 found = true;
                 break;
             }
@@ -93,10 +155,20 @@ public class DashboardTable extends JTable {
             model.addRow(
                 new Object[] {
                     key, 
-                    value
+                    value,
+                    System.currentTimeMillis()
                 }
             );
         }
+    }
+    
+    private String messageToHex(CanMessage message)
+    {
+        String value = "";
+        for (byte b : message.getData()) {
+            value += String.format("%02X ", b);
+        }
+        return value;
     }
     
     public void addCanMessage(CanMessage message)
@@ -111,6 +183,7 @@ public class DashboardTable extends JTable {
                     
                     VolumeMessage peugeotMessage = new VolumeMessage(message);
                     
+                    addPair("Volume / Hex", messageToHex(message));
                     addPair("Volume", peugeotMessage.getVolume());
                     
                     break;
@@ -121,6 +194,7 @@ public class DashboardTable extends JTable {
                     CurrentCDTrackMessage peugeotMessage = new CurrentCDTrackMessage(message);
                     Track track = peugeotMessage.getTrack();
                     
+                    addPair("Current CD Track / Hex", messageToHex(message));
                     addPair("Current CD Track", track.getCompleteName("/", "-"));
                     break;
                 }
@@ -128,6 +202,7 @@ public class DashboardTable extends JTable {
                 case CanComfort.ID_PARKTRONIC:
                     ParktronicMessage pm = new ParktronicMessage(message);
                     
+                    addPair("Parktronic / Hex", messageToHex(message));
                     addPair("Parktronic / FrontLeft", pm.getFrontLeft());
                     addPair("Parktronic / FrontCenter", pm.getFrontCenter());
                     addPair("Parktronic / FrontRight", pm.getFrontRight());
@@ -144,6 +219,7 @@ public class DashboardTable extends JTable {
                     
                     AudioMenuMessage am = new AudioMenuMessage(message);
                     
+                    addPair("AudioMenu / Hex", messageToHex(message));
                     addPair("AudioMenu / SideBalance", am.getSideBalance());
                     addPair("AudioMenu / Balance", am.getBalance());
                     addPair("AudioMenu / ShowSideBalance", am.isShowSideBalance());
@@ -165,6 +241,7 @@ public class DashboardTable extends JTable {
                     
                     CurrentCDTrackInfoMessage cctim = new CurrentCDTrackInfoMessage(message);
                     
+                    addPair("CurrentCDTrackInfo / Hex", messageToHex(message));
                     addPair("CurrentCDTrackInfo / TrackNumber", cctim.getTrackNumber());
                     addPair("CurrentCDTrackInfo / Time", String.format(
                         "%s of %s", 
@@ -177,11 +254,8 @@ public class DashboardTable extends JTable {
                 case CanComfort.ID_TIME:
                     
                     TimeMessage tm = new TimeMessage(message);
-                    String value = "";
-                    for (byte b : message.getData()) {
-                        value += String.format("%02X ", b);
-                    }
-                    addPair("Time / Hex", value);
+
+                    addPair("Time / Hex", messageToHex(message));
                     addPair("Time", tm.getTimeString());
                     addPair("Time / Format", tm.isTimeFormat24() ? "24h" : "12h");
                     
@@ -190,13 +264,7 @@ public class DashboardTable extends JTable {
                 case CanComfort.ID_COLUMN_KEYPAD:
                     ColumnKeypadMessage ckm = new ColumnKeypadMessage(message);
                     
-                    
-                    String ckmValue = "";
-                    for (byte b : message.getData()) {
-                        ckmValue += String.format("%02X ", b);
-                    }
-                    
-                    addPair("ColumnKeypad / Hex", ckmValue);
+                    addPair("ColumnKeypad / Hex", messageToHex(message));
                     addPair("ColumnKeypad / Forward press", ckm.isForward());
                     addPair("ColumnKeypad / Backward press", ckm.isBackward());
                     addPair("ColumnKeypad / UnknownValue press", ckm.getUnknownValue());
@@ -207,14 +275,12 @@ public class DashboardTable extends JTable {
                     break;
                     
                 case CanComfort.ID_RDS:
+                    
+                    addPair("RDS / Hex", messageToHex(message));
+                    
                     RDSMessage rum = new RDSMessage(message);
-                    
-                    String rumValue = "";
-                    for (byte b : message.getData()) {
-                        rumValue += String.format("%02X ", b);
-                    }
-                    
-                    addPair("RDS / Hex", rumValue);
+                    addPair("RDS / REG mode activated", rum.isREGModeActivated());
+                    addPair("RDS / RDS search activated", rum.isRDSSearchActivated());
                     addPair("RDS / TA", rum.isTA());
                     addPair("RDS / Show PTY Menu", rum.isShowPTYMenu());
                     addPair("RDS / PTY", rum.isPTY());
@@ -225,12 +291,7 @@ public class DashboardTable extends JTable {
                 case CanComfort.ID_RADIO_KEYPAD:
                     RadioKeypadMessage rkm = new RadioKeypadMessage(message);
                     
-                    String rkmValue = "";
-                    for (byte b : message.getData()) {
-                        rkmValue += String.format("%02X ", b);
-                    }
-                    
-                    addPair("RadioKeypad / Hex", rkmValue);
+                    addPair("RadioKeypad / Hex", messageToHex(message));
                     addPair("RadioKeypad / Audio press", rkm.isAudio());
                     addPair("RadioKeypad / Clim  press", rkm.isClim());
                     addPair("RadioKeypad / Dark press", rkm.isDark());
@@ -247,11 +308,7 @@ public class DashboardTable extends JTable {
                     
                 default:
                     String key = String.format("%03X", message.getId()).toString();
-                    String val = "";
-                    for (byte b : message.getData()) {
-                        val += String.format("%02X ", b);
-                    }
-                    addPair(key, val);
+                    addPair(key, messageToHex(message));
             }
             
         } catch (MessageException e) {
