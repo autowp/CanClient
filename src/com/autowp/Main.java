@@ -43,6 +43,7 @@ import com.autowp.peugeot.CanComfortException;
 import com.autowp.peugeot.CanComfortSpecs;
 import com.autowp.peugeot.columnkeypad.ColumnKeypadDialog;
 import com.autowp.peugeot.display.DisplayDialog;
+import com.autowp.peugeot.radiokeypad.RadioKeypadDialog;
 import com.autowp.sender.SenderDialog;
 
 public class Main {
@@ -73,10 +74,12 @@ public class Main {
     private final Action showDashboardAction = new ShowDashboardAction();
     private final Action showSenderAction = new ShowSenderAction();
     private final Action showColumnKeypadAction = new ShowColumnKeypadAction();
+    private final Action showRadioKeypadAction = new ShowRadioKeypadAction();
 
     public SenderDialog senderDialog;
 
     public ColumnKeypadDialog columnKeypadDialog;
+    public RadioKeypadDialog radioKeypadDialog;
 
     /**
      * Launch the application.
@@ -250,6 +253,9 @@ public class Main {
         mntmShowColumnKeypad.setAction(showColumnKeypadAction);
         mnNewMenu_1.add(mntmShowColumnKeypad);
         
+        JMenuItem mntmShowRadioKeypad = new JMenuItem("Show radio keypad");
+        mntmShowRadioKeypad.setAction(showRadioKeypadAction);
+        mnNewMenu_1.add(mntmShowRadioKeypad);
 
     }
     
@@ -476,6 +482,20 @@ public class Main {
             }
             columnKeypadDialog.setVisible(true);
             columnKeypadDialog.toFront();
+        }
+    }
+    private class ShowRadioKeypadAction extends AbstractAction {
+        private static final long serialVersionUID = 1L;
+        public ShowRadioKeypadAction() {
+            putValue(NAME, "Show radio keypad");
+            putValue(SHORT_DESCRIPTION, "Some short description");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (radioKeypadDialog == null) {
+                radioKeypadDialog = new RadioKeypadDialog(client);
+            }
+            radioKeypadDialog.setVisible(true);
+            radioKeypadDialog.toFront();
         }
     }
 }

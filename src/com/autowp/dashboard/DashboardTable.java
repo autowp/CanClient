@@ -11,11 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-import com.autowp.can.CanClient;
-import com.autowp.can.CanClientException;
-import com.autowp.can.CanFrame;
 import com.autowp.can.CanMessage;
-import com.autowp.can.CanClient.FrameTimerTask;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.message.AudioMenuMessage;
 import com.autowp.peugeot.message.ColumnKeypadMessage;
@@ -25,6 +21,7 @@ import com.autowp.peugeot.message.MessageException;
 import com.autowp.peugeot.message.ParktronicMessage;
 import com.autowp.peugeot.message.RDSMessage;
 import com.autowp.peugeot.message.RadioKeypadMessage;
+import com.autowp.peugeot.message.RadioMessage1;
 import com.autowp.peugeot.message.TimeMessage;
 import com.autowp.peugeot.message.Track;
 import com.autowp.peugeot.message.VolumeMessage;
@@ -304,6 +301,19 @@ public class DashboardTable extends JTable {
                     addPair("RadioKeypad / Trip press", rkm.isTrip());
                     addPair("RadioKeypad / Up press", rkm.isUp());
                    
+                    break;
+                    
+                case CanComfort.ID_RADIO_1:
+                    addPair("1E0 Radio1 / Hex", messageToHex(message));
+                    RadioMessage1 r1m = new RadioMessage1(message);
+                    addPair("1E0 Radio1 / TrackIntro", r1m.isTrackIntro());
+                    addPair("1E0 Radio1 / RandomPlay", r1m.isRandomPlay());
+                    addPair("1E0 Radio1 / AltFreqencies (RDS)", r1m.isAltFreqencies());
+                    addPair("1E0 Radio1 / RadioText", r1m.isRadioText());
+                    addPair("1E0 Radio1 / REG mode", r1m.isRegMode());
+                    addPair("1E0 Radio1 / Unknown1", r1m.getUnknown1());
+                    addPair("1E0 Radio1 / Unknown2", r1m.isUnknown2());
+                    addPair("1E0 Radio1 / Unknown3", r1m.getUnknown3());
                     break;
                     
                 default:
