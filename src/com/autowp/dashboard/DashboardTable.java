@@ -337,6 +337,8 @@ public class DashboardTable extends JTable {
                     addPair("167 DisplayStatus / Hex", messageToHex(message));
                     DisplayStatusMessage dsm = new DisplayStatusMessage(message);
                     addPair("1E6 DisplayStatus / isOff", dsm.isOff());
+                    addPair("1E6 DisplayStatus / Unknown1", dsm.getUnknown1());
+                    addPair("1E6 DisplayStatus / Unknown2", dsm.getUnknown2());
                     break;
                     
                 case CanComfort.ID_DISPLAY_UNKNOWN1:
