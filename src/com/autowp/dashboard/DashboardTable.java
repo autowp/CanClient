@@ -14,9 +14,13 @@ import javax.swing.table.TableColumnModel;
 import com.autowp.can.CanMessage;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.message.AudioMenuMessage;
+import com.autowp.peugeot.message.BsiInfoMessage;
 import com.autowp.peugeot.message.ColumnKeypadMessage;
 import com.autowp.peugeot.message.CurrentCDTrackInfoMessage;
 import com.autowp.peugeot.message.CurrentCDTrackMessage;
+import com.autowp.peugeot.message.DisplayConditioningMessage;
+import com.autowp.peugeot.message.DisplayStatusMessage;
+import com.autowp.peugeot.message.DisplayUnknown1Message;
 import com.autowp.peugeot.message.MessageException;
 import com.autowp.peugeot.message.ParktronicMessage;
 import com.autowp.peugeot.message.RDSMessage;
@@ -120,6 +124,11 @@ public class DashboardTable extends JTable {
     private void addPair(String key, boolean value)
     {
         addPair(key, value ? "true" : "false");
+    }
+    
+    private void addPair(String key, float value)
+    {
+        addPair(key, new Float(value).toString());
     }
     
     private void addPair(String key, int value)
@@ -315,6 +324,38 @@ public class DashboardTable extends JTable {
                     addPair("1E0 Radio1 / Unknown2", r1m.isUnknown2());
                     addPair("1E0 Radio1 / Unknown3", r1m.getUnknown3());
                     break;
+                    
+                case CanComfort.ID_DISPLAY_CONDITIONING:
+                    addPair("1E6 DisplayConditioning / Hex", messageToHex(message));
+                    DisplayConditioningMessage dcm = new DisplayConditioningMessage(message);
+                    addPair("1E6 DisplayConditioning / isDefault", dcm.isDefault());
+                    addPair("1E6 DisplayConditioning / isLHRHControl", dcm.isLHRHControl());
+                    addPair("1E6 DisplayConditioning / isAcOff", dcm.isAcOff());
+                    break;
+                    
+                case CanComfort.ID_DISPLAY_STATUS:
+                    addPair("167 DisplayStatus / Hex", messageToHex(message));
+                    DisplayStatusMessage dsm = new DisplayStatusMessage(message);
+                    addPair("1E6 DisplayStatus / isOff", dsm.isOff());
+                    break;
+                    
+                case CanComfort.ID_DISPLAY_UNKNOWN1:
+                    addPair("0DF DisplayUnknown1 / Hex", messageToHex(message));
+                    DisplayUnknown1Message du1m = new DisplayUnknown1Message(message);
+                    addPair("0DF DisplayUnknown1 / isUnknown1", du1m.isUnknown1());
+                    addPair("0DF DisplayUnknown1 / isUnknown2", du1m.isUnknown2());
+                    break;
+                    
+                case CanComfort.ID_BSI_INFO:
+                    addPair("0F6 BsiInfo / Hex", messageToHex(message));
+                    BsiInfoMessage bi1m = new BsiInfoMessage(message);
+                    addPair("0F6 BsiInfo / isReverse", bi1m.isReverse());
+                    addPair("0F6 BsiInfo / Gear", bi1m.getGear());
+                    addPair("0F6 BsiInfo / Temperature", bi1m.getTemperature());
+                    addPair("0F6 BsiInfo / Odometer", bi1m.getOdometer());
+                    break;
+                    
+                    
                     
                 default:
                     String key = String.format("%03X", message.getId()).toString();
