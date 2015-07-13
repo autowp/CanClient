@@ -1,4 +1,4 @@
-package com.autowp.peugeot.bsi;
+package com.autowp.psa.bsi;
 
 import java.awt.BorderLayout;
 
@@ -9,7 +9,9 @@ import javax.swing.JLabel;
 import javax.swing.JToggleButton;
 
 import com.autowp.can.CanFrameException;
-import com.autowp.peugeot.message.BSIInfoWindowMessage;
+import com.autowp.psa.bsi.BSI;
+import com.autowp.psa.bsi.BSIException;
+import com.autowp.psa.message.BSIInfoWindowMessage;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -21,12 +23,15 @@ import javax.swing.JButton;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.JComboBox;
+
 import java.awt.FlowLayout;
+
 import javax.swing.JCheckBox;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.SwingConstants;
+
 import java.awt.Font;
 
 public class BSIDialog extends JDialog {
@@ -43,7 +48,7 @@ public class BSIDialog extends JDialog {
     private JButton btnShowInfoWindow;
     private JButton btnHideInfoWindow;
     private JToggleButton tglbtnInfoWindow;
-    private JComboBox cmbxCode;
+    private JComboBox<String> cmbxCode;
     private JPanel panel_3;
     private JCheckBox chckbxDashboardLightning;
     private JSlider slider;
@@ -51,19 +56,6 @@ public class BSIDialog extends JDialog {
     private JLabel lblxStatus;
     private JLabel lblxfInfo;
     private JLabel lblxaInfowindow;
-
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        try {
-            BSIDialog dialog = new BSIDialog(null);
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Create the dialog.
@@ -161,7 +153,7 @@ public class BSIDialog extends JDialog {
             codes[i] = String.format("%02X", i);
         }
         
-        cmbxCode = new JComboBox(codes);
+        cmbxCode = new JComboBox<>(codes);
         pnlInfoWindow.add(cmbxCode);
         
         JPanel panel_1 = new JPanel();

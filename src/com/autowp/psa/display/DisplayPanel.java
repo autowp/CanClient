@@ -1,4 +1,4 @@
-package com.autowp.peugeot.display;
+package com.autowp.psa.display;
 
 import javax.swing.JPanel;
 import java.awt.CardLayout;

@@ -1,4 +1,4 @@
-package com.autowp.peugeot.display;
+package com.autowp.psa.display;
 
 @SuppressWarnings("serial")
 public class DisplayException extends Exception {

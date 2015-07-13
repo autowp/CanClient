@@ -1,4 +1,4 @@
-package com.autowp.peugeot.columnkeypad;
+package com.autowp.psa.columnkeypad;
 
 import java.awt.EventQueue;
 
@@ -12,13 +12,14 @@ import com.autowp.can.CanClient;
 import com.autowp.can.CanClientException;
 import com.autowp.can.CanFrame;
 import com.autowp.can.CanFrameException;
-import com.autowp.peugeot.message.ColumnKeypadMessage;
+import com.autowp.psa.message.ColumnKeypadMessage;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.BorderLayout;
+
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
@@ -31,23 +32,6 @@ public class ColumnKeypadDialog extends JDialog {
     private ColumnKeypadMessage mMessage = new ColumnKeypadMessage();
 
     private JToggleButton tglbtnReceive;
-
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    ColumnKeypadDialog dialog = new ColumnKeypadDialog(null);
-                    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    dialog.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
     /**
      * Create the dialog.

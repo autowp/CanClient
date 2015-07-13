@@ -12,24 +12,24 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 import com.autowp.can.CanMessage;
-import com.autowp.peugeot.CanComfort;
-import com.autowp.peugeot.message.AudioMenuMessage;
-import com.autowp.peugeot.message.BSIInfoMessage;
-import com.autowp.peugeot.message.BSIInfoWindowMessage;
-import com.autowp.peugeot.message.ColumnKeypadMessage;
-import com.autowp.peugeot.message.CurrentCDTrackInfoMessage;
-import com.autowp.peugeot.message.CurrentCDTrackMessage;
-import com.autowp.peugeot.message.DisplayConditioningMessage;
-import com.autowp.peugeot.message.DisplayStatusMessage;
-import com.autowp.peugeot.message.DisplayUnknown1Message;
-import com.autowp.peugeot.message.MessageException;
-import com.autowp.peugeot.message.ParktronicMessage;
-import com.autowp.peugeot.message.RDSMessage;
-import com.autowp.peugeot.message.RadioKeypadMessage;
-import com.autowp.peugeot.message.RadioMessage1;
-import com.autowp.peugeot.message.TimeMessage;
-import com.autowp.peugeot.message.Track;
-import com.autowp.peugeot.message.VolumeMessage;
+import com.autowp.psa.CanComfort;
+import com.autowp.psa.message.AudioMenuMessage;
+import com.autowp.psa.message.BSIInfoMessage;
+import com.autowp.psa.message.BSIInfoWindowMessage;
+import com.autowp.psa.message.ColumnKeypadMessage;
+import com.autowp.psa.message.CurrentCDTrackInfoMessage;
+import com.autowp.psa.message.CurrentCDTrackMessage;
+import com.autowp.psa.message.DisplayConditioningMessage;
+import com.autowp.psa.message.DisplayStatusMessage;
+import com.autowp.psa.message.DisplayUnknown1Message;
+import com.autowp.psa.message.MessageException;
+import com.autowp.psa.message.ParktronicMessage;
+import com.autowp.psa.message.RDSMessage;
+import com.autowp.psa.message.RadioKeypadMessage;
+import com.autowp.psa.message.RadioMessage1;
+import com.autowp.psa.message.TimeMessage;
+import com.autowp.psa.message.Track;
+import com.autowp.psa.message.VolumeMessage;
 
 
 

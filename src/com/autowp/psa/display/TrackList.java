@@ -1,4 +1,4 @@
-package com.autowp.peugeot.display;
+package com.autowp.psa.display;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,8 +12,8 @@ import javax.swing.JPanel;
 import org.apache.commons.codec.binary.Hex;
 
 import com.autowp.can.CanMessage;
-import com.autowp.peugeot.CanComfort;
-import com.autowp.peugeot.message.Track;
+import com.autowp.psa.CanComfort;
+import com.autowp.psa.message.Track;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {

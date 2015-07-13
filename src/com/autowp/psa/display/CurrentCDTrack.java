@@ -1,14 +1,15 @@
-package com.autowp.peugeot.display;
+package com.autowp.psa.display;
 
 import java.util.Arrays;
 
 import javax.swing.JLabel;
+
 import org.apache.commons.codec.binary.Hex;
 
 import com.autowp.can.CanMessage;
-import com.autowp.peugeot.CanComfort;
-import com.autowp.peugeot.message.MessageException;
-import com.autowp.peugeot.message.Track;
+import com.autowp.psa.CanComfort;
+import com.autowp.psa.message.MessageException;
+import com.autowp.psa.message.Track;
 
 
 

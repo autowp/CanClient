@@ -1,4 +1,4 @@
-package com.autowp.peugeot.display;
+package com.autowp.psa.display;
 
 import java.awt.Color;
 

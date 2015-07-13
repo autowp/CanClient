@@ -1,6 +1,7 @@
-package com.autowp.peugeot.radiokeypad;
+package com.autowp.psa.radiokeypad;
 
 import java.awt.BorderLayout;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -10,7 +11,7 @@ import com.autowp.can.CanClient;
 import com.autowp.can.CanClientException;
 import com.autowp.can.CanFrame;
 import com.autowp.can.CanFrameException;
-import com.autowp.peugeot.message.RadioKeypadMessage;
+import com.autowp.psa.message.RadioKeypadMessage;
 
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
@@ -25,19 +26,6 @@ public class RadioKeypadDialog extends JDialog {
     private RadioKeypadMessage mMessage = new RadioKeypadMessage();
 
     private JToggleButton tglbtnReceive;
-
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        try {
-            RadioKeypadDialog dialog = new RadioKeypadDialog(null);
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Create the dialog.

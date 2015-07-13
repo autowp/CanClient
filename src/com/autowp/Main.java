@@ -38,13 +38,13 @@ import com.autowp.canhacker.command.Command;
 import com.autowp.canhacker.response.Response;
 import com.autowp.dashboard.DashboardDialog;
 import com.autowp.elm327.Elm327;
-import com.autowp.peugeot.CanComfortSpecs;
-import com.autowp.peugeot.bsi.BSI;
-import com.autowp.peugeot.bsi.BSIDialog;
-import com.autowp.peugeot.bsi.BSIException;
-import com.autowp.peugeot.columnkeypad.ColumnKeypadDialog;
-import com.autowp.peugeot.display.DisplayDialog;
-import com.autowp.peugeot.radiokeypad.RadioKeypadDialog;
+import com.autowp.psa.CanComfortSpecs;
+import com.autowp.psa.bsi.BSI;
+import com.autowp.psa.bsi.BSIDialog;
+import com.autowp.psa.bsi.BSIException;
+import com.autowp.psa.columnkeypad.ColumnKeypadDialog;
+import com.autowp.psa.display.DisplayDialog;
+import com.autowp.psa.radiokeypad.RadioKeypadDialog;
 import com.autowp.sender.SenderDialog;
 
 public class Main {
