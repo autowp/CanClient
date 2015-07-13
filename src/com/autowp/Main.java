@@ -21,7 +21,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 
@@ -31,6 +30,7 @@ import com.autowp.arduinocan.ArduinoCanSerial;
 import com.autowp.can.CanClient;
 import com.autowp.can.CanClientException;
 import com.autowp.can.CanFrame;
+import com.autowp.can.CanFrameException;
 import com.autowp.can.CanMessage;
 import com.autowp.canhacker.CanHacker;
 import com.autowp.canhacker.CanHackerSerial;
@@ -38,9 +38,10 @@ import com.autowp.canhacker.command.Command;
 import com.autowp.canhacker.response.Response;
 import com.autowp.dashboard.DashboardDialog;
 import com.autowp.elm327.Elm327;
-import com.autowp.peugeot.CanComfort;
-import com.autowp.peugeot.CanComfortException;
 import com.autowp.peugeot.CanComfortSpecs;
+import com.autowp.peugeot.bsi.BSI;
+import com.autowp.peugeot.bsi.BSIDialog;
+import com.autowp.peugeot.bsi.BSIException;
 import com.autowp.peugeot.columnkeypad.ColumnKeypadDialog;
 import com.autowp.peugeot.display.DisplayDialog;
 import com.autowp.peugeot.radiokeypad.RadioKeypadDialog;
@@ -51,6 +52,7 @@ public class Main {
     private JFrame frame;
     
     private CanClient client;
+    private BSI mBSI;
     
     private JTextArea canhackerLogTextArea;
     private CanFrameTable canSentTable;
@@ -67,7 +69,6 @@ public class Main {
     private final Action disconnectAction = new DisconnectAction();
     private final Action exitAction = new ExitAction();
     private final Action createFilterAction = new CreateFilterAction();
-    private JTextField vinTextField;
     private ArrayList<CanFilterFrame> filterFrames = new ArrayList<CanFilterFrame>();
     private final Action showDisplayAction = new ShowDisplayAction();
     private final Action createMessageFilterAction = new CreateMessageFilterAction();
@@ -75,11 +76,14 @@ public class Main {
     private final Action showSenderAction = new ShowSenderAction();
     private final Action showColumnKeypadAction = new ShowColumnKeypadAction();
     private final Action showRadioKeypadAction = new ShowRadioKeypadAction();
+    private final Action showBSIAction = new ShowBSIAction();
 
     public SenderDialog senderDialog;
 
     public ColumnKeypadDialog columnKeypadDialog;
     public RadioKeypadDialog radioKeypadDialog;
+
+    public BSIDialog mBSIDialog;
 
     /**
      * Launch the application.
@@ -175,12 +179,6 @@ public class Main {
         
         JButton disconnectBtn = new JButton(disconnectAction);
         toolBar.add(disconnectBtn);
-        
-        vinTextField = new JTextField();
-        vinTextField.setToolTipText("VIN");
-        vinTextField.setText("21496464");
-        toolBar.add(vinTextField);
-        vinTextField.setColumns(10);
         frame.getContentPane().setLayout(new BorderLayout(0, 0));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         
@@ -237,6 +235,10 @@ public class Main {
         mntmCreateMessageFilter.setAction(createMessageFilterAction);
         mnNewMenu_1.add(mntmCreateMessageFilter);
         
+        JMenuItem mntmShowBSI = new JMenuItem("Show BSI");
+        mntmShowBSI.setAction(showBSIAction);
+        mnNewMenu_1.add(mntmShowBSI);
+        
         JMenuItem displayMenuItem = new JMenuItem("Show display");
         displayMenuItem.setAction(showDisplayAction);
         mnNewMenu_1.add(displayMenuItem);
@@ -267,6 +269,17 @@ public class Main {
     public static String[] getAvailableSerialPorts() {
         return SerialPortList.getPortNames();
     }
+    
+    private BSI getBSI()
+    {
+        if (mBSI == null) {
+            mBSI = new BSI(client);
+            mBSI.setVIN("21496464");
+        }
+        
+        return mBSI;
+    }
+    
     @SuppressWarnings("serial")
     private class ConnectAction extends AbstractAction {
         public ConnectAction() {
@@ -348,12 +361,26 @@ public class Main {
                 try {
                     client.connect();
                     logCanhacker("Connected");
-                    CanComfort.emulateBSIIgnition(client, vinTextField.getText());
+                    
+                    BSI bsi = getBSI();
+                    bsi.setReceive(true);
+                    bsi.startStatus();
+                    bsi.startInfo();
+                    bsi.sendVIN();
+                    bsi.startInfoWindow();
+                    bsi.setDashboardLightingBrightness((byte) 0x08);
                     logCanhacker("Emulation started");
+                    
+                    if (mBSIDialog != null) {
+                        mBSIDialog.refreshControls();
+                    }
+                    
                 } catch (CanClientException e1) {
                     logCanhacker("Can client error: " + e1.getMessage());
-                } catch (CanComfortException e1) {
-                    logCanhacker("Can comfort error: " + e1.getMessage());
+                } catch (BSIException e1) {
+                    logCanhacker("BSI error: " + e1.getMessage());
+                } catch (CanFrameException e1) {
+                    logCanhacker("Can frame error: " + e1.getMessage());
                 }
                 
             }
@@ -371,6 +398,15 @@ public class Main {
         public void actionPerformed(ActionEvent e) {
             if (client.isConnected()) {
                 logCanhacker("Disconnecting");
+                BSI bsi = getBSI();
+                bsi.stopStatus();
+                bsi.stopInfo();
+                bsi.stopInfoWindow();
+                
+                if (mBSIDialog != null) {
+                    mBSIDialog.refreshControls();
+                }
+                
                 client.disconnect();
                 logCanhacker("Disconnected");
             }
@@ -496,6 +532,21 @@ public class Main {
             }
             radioKeypadDialog.setVisible(true);
             radioKeypadDialog.toFront();
+        }
+    }
+    
+    private class ShowBSIAction extends AbstractAction {
+        private static final long serialVersionUID = 1L;
+        public ShowBSIAction() {
+            putValue(NAME, "Show BSI");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (mBSIDialog == null) {
+                mBSIDialog = new BSIDialog(getBSI());
+            }
+            mBSIDialog.setVisible(true);
+            mBSIDialog.toFront();
+            mBSIDialog.refreshControls();
         }
     }
 }

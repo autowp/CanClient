@@ -81,7 +81,7 @@ public class Display {
                     
                     final VolumePanel volumePanel = displayPanel.getVolumePanel();
                     
-                    boolean oldVisible = volumePanel.isVisible();
+                    //boolean oldVisible = volumePanel.isVisible();
                     
                     if (peugeotMessage.getShow()) {
                         volumePanel.setVisible(true);

@@ -14,7 +14,8 @@ import javax.swing.table.TableColumnModel;
 import com.autowp.can.CanMessage;
 import com.autowp.peugeot.CanComfort;
 import com.autowp.peugeot.message.AudioMenuMessage;
-import com.autowp.peugeot.message.BsiInfoMessage;
+import com.autowp.peugeot.message.BSIInfoMessage;
+import com.autowp.peugeot.message.BSIInfoWindowMessage;
 import com.autowp.peugeot.message.ColumnKeypadMessage;
 import com.autowp.peugeot.message.CurrentCDTrackInfoMessage;
 import com.autowp.peugeot.message.CurrentCDTrackMessage;
@@ -339,6 +340,8 @@ public class DashboardTable extends JTable {
                     addPair("1E6 DisplayStatus / isOff", dsm.isOff());
                     addPair("1E6 DisplayStatus / Unknown1", dsm.getUnknown1());
                     addPair("1E6 DisplayStatus / Unknown2", dsm.getUnknown2());
+                    addPair("1E6 DisplayStatus / Unknown3", dsm.getUnknown3());
+                    addPair("1E6 DisplayStatus / Unknown4", dsm.getUnknown4());
                     break;
                     
                 case CanComfort.ID_DISPLAY_UNKNOWN1:
@@ -350,14 +353,20 @@ public class DashboardTable extends JTable {
                     
                 case CanComfort.ID_BSI_INFO:
                     addPair("0F6 BsiInfo / Hex", messageToHex(message));
-                    BsiInfoMessage bi1m = new BsiInfoMessage(message);
+                    BSIInfoMessage bi1m = new BSIInfoMessage(message);
                     addPair("0F6 BsiInfo / isReverse", bi1m.isReverse());
                     addPair("0F6 BsiInfo / Gear", bi1m.getGear());
                     addPair("0F6 BsiInfo / Temperature", bi1m.getTemperature());
                     addPair("0F6 BsiInfo / Odometer", bi1m.getOdometer());
                     break;
                     
+                case CanComfort.ID_BSI_INFO_WINDOW:
+                    addPair("1A1 BsiInfoWindow / Hex", messageToHex(message));
+                    BSIInfoWindowMessage biwm = new BSIInfoWindowMessage(message);
+                    addPair("1A1 BsiInfoWindow / Action", biwm.getAction());
+                    addPair("1A1 BsiInfoWindow / Code", biwm.getCode());
                     
+                    break;
                     
                 default:
                     String key = String.format("%03X", message.getId()).toString();

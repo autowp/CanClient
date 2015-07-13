@@ -78,8 +78,6 @@ public class SenderDialog extends JDialog {
                         id += (cValue << multiplier);
                     }
                     
-                    System.out.println(id);
-                    
                     char[] dataChars = tfData.getText().toCharArray();
                     byte[] data = Hex.decodeHex(dataChars);
                     
