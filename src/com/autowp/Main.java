@@ -41,9 +41,9 @@ import com.autowp.elm327.Elm327;
 import com.autowp.psa.CanComfortSpecs;
 import com.autowp.psa.bsi.BSI;
 import com.autowp.psa.bsi.BSIDialog;
-import com.autowp.psa.bsi.BSIException;
 import com.autowp.psa.columnkeypad.ColumnKeypadDialog;
 import com.autowp.psa.display.DisplayDialog;
+import com.autowp.psa.message.MessageException;
 import com.autowp.psa.radiokeypad.RadioKeypadDialog;
 import com.autowp.sender.SenderDialog;
 
@@ -270,7 +270,7 @@ public class Main {
         return SerialPortList.getPortNames();
     }
     
-    private BSI getBSI()
+    private BSI getBSI() throws MessageException
     {
         if (mBSI == null) {
             mBSI = new BSI(client);
@@ -366,7 +366,7 @@ public class Main {
                     bsi.setReceive(true);
                     bsi.startStatus();
                     bsi.startInfo();
-                    bsi.sendVIN();
+                    bsi.startVIN();
                     bsi.startInfoWindow();
                     bsi.setDashboardLightingBrightness((byte) 0x08);
                     logCanhacker("Emulation started");
@@ -377,10 +377,10 @@ public class Main {
                     
                 } catch (CanClientException e1) {
                     logCanhacker("Can client error: " + e1.getMessage());
-                } catch (BSIException e1) {
-                    logCanhacker("BSI error: " + e1.getMessage());
                 } catch (CanFrameException e1) {
                     logCanhacker("Can frame error: " + e1.getMessage());
+                } catch (MessageException e1) {
+                    logCanhacker("Message error: " + e1.getMessage());
                 }
                 
             }
@@ -398,17 +398,23 @@ public class Main {
         public void actionPerformed(ActionEvent e) {
             if (client.isConnected()) {
                 logCanhacker("Disconnecting");
-                BSI bsi = getBSI();
-                bsi.stopStatus();
-                bsi.stopInfo();
-                bsi.stopInfoWindow();
-                
-                if (mBSIDialog != null) {
-                    mBSIDialog.refreshControls();
+                try {
+                    BSI bsi = getBSI();
+                    bsi.stopStatus();
+                    bsi.stopInfo();
+                    bsi.stopInfoWindow();
+                    bsi.stopVIN();
+                    
+                    if (mBSIDialog != null) {
+                        mBSIDialog.refreshControls();
+                    }
+                    
+                    client.disconnect();
+                    logCanhacker("Disconnected");
+                } catch (MessageException e1) {
+                    logCanhacker("Message error: " + e1.getMessage());
                 }
                 
-                client.disconnect();
-                logCanhacker("Disconnected");
             }
             
             connectAction.setEnabled(!client.isConnected());
@@ -541,12 +547,17 @@ public class Main {
             putValue(NAME, "Show BSI");
         }
         public void actionPerformed(ActionEvent e) {
-            if (mBSIDialog == null) {
-                mBSIDialog = new BSIDialog(getBSI());
+            try {
+                if (mBSIDialog == null) {
+                    mBSIDialog = new BSIDialog(getBSI());
+                }
+                mBSIDialog.setVisible(true);
+                mBSIDialog.toFront();
+                mBSIDialog.refreshControls();
+            } catch (MessageException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
             }
-            mBSIDialog.setVisible(true);
-            mBSIDialog.toFront();
-            mBSIDialog.refreshControls();
         }
     }
 }

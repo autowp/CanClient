@@ -10,8 +10,8 @@ import javax.swing.JToggleButton;
 
 import com.autowp.can.CanFrameException;
 import com.autowp.psa.bsi.BSI;
-import com.autowp.psa.bsi.BSIException;
 import com.autowp.psa.message.BSIInfoWindowMessage;
+import com.autowp.psa.message.MessageException;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -43,19 +43,21 @@ public class BSIDialog extends JDialog {
     private JToggleButton tglbtnInfo;
     private JToggleButton tglbtnReceive;
     private JPanel panel_2;
-    private JButton btnSendVIN;
+    private JToggleButton tglbtnVIN;
     private JPanel pnlInfoWindow;
     private JButton btnShowInfoWindow;
     private JButton btnHideInfoWindow;
     private JToggleButton tglbtnInfoWindow;
-    private JComboBox<String> cmbxCode;
+    private JComboBox cmbxCode;
     private JPanel panel_3;
     private JCheckBox chckbxDashboardLightning;
-    private JSlider slider;
+    private JSlider sliderBrightness;
     private JLabel lblVin_1;
     private JLabel lblxStatus;
     private JLabel lblxfInfo;
     private JLabel lblxaInfowindow;
+    private JPanel panel_4;
+    private JSlider sliderTemperature;
 
     /**
      * Create the dialog.
@@ -78,14 +80,24 @@ public class BSIDialog extends JDialog {
         panel_2 = new JPanel();
         panel.add(panel_2);
         
+        tglbtnVIN = new JToggleButton("Start VIN");
+        panel_2.add(tglbtnVIN);
+        
+        tglbtnVIN.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                if (tglbtnVIN.isSelected()) {
+                    mBSI.startVIN();
+                } else {
+                    mBSI.stopVIN();
+                }
+            }
+        });
+        
         textField = new JTextField();
         panel_2.add(textField);
         textField.setToolTipText("VIN");
         textField.setText(mBSI.getVIN());
         textField.setColumns(8);
-        
-        btnSendVIN = new JButton("Send");
-        panel_2.add(btnSendVIN);
         
         lblxStatus = new JLabel("0x036 Status");
         lblxStatus.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -102,11 +114,11 @@ public class BSIDialog extends JDialog {
         chckbxDashboardLightning = new JCheckBox("Dashboard lighting");
         panel_3.add(chckbxDashboardLightning);
         
-        slider = new JSlider();
-        slider.setMinimum(0);
-        slider.setMaximum(15);
-        slider.setValue(8);
-        panel_3.add(slider);
+        sliderBrightness = new JSlider();
+        sliderBrightness.setMinimum(0);
+        sliderBrightness.setMaximum(15);
+        sliderBrightness.setValue(8);
+        panel_3.add(sliderBrightness);
         
         tglbtnStatus.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
@@ -128,8 +140,32 @@ public class BSIDialog extends JDialog {
         lblxfInfo.setFont(new Font("Tahoma", Font.PLAIN, 20));
         panel.add(lblxfInfo);
         
+        panel_4 = new JPanel();
+        panel.add(panel_4);
+        
         tglbtnInfo = new JToggleButton("Start info");
-        panel.add(tglbtnInfo);
+        panel_4.add(tglbtnInfo);
+        
+        sliderTemperature = new JSlider();
+        sliderTemperature.setValue(250);
+        sliderTemperature.setMaximum(850);
+        sliderTemperature.setMinimum(-400);
+        panel_4.add(sliderTemperature);
+        
+        tglbtnInfo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (tglbtnInfo.isSelected()) {
+                    try {
+                        mBSI.startInfo();
+                    } catch (CanFrameException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                } else {
+                    mBSI.stopInfo();
+                }
+            }
+        });
         
         lblxaInfowindow = new JLabel("0x1A1 InfoWindow");
         lblxaInfowindow.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -153,7 +189,7 @@ public class BSIDialog extends JDialog {
             codes[i] = String.format("%02X", i);
         }
         
-        cmbxCode = new JComboBox<>(codes);
+        cmbxCode = new JComboBox(codes);
         pnlInfoWindow.add(cmbxCode);
         
         JPanel panel_1 = new JPanel();
@@ -175,21 +211,11 @@ public class BSIDialog extends JDialog {
                 warn();
             }
             public void warn() {
-                mBSI.setVIN(textField.getText());
-            }
-        });
-        
-        tglbtnInfo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (tglbtnInfo.isSelected()) {
-                    try {
-                        mBSI.startInfo();
-                    } catch (CanFrameException e1) {
-                        // TODO Auto-generated catch block
-                        e1.printStackTrace();
-                    }
-                } else {
-                    mBSI.stopInfo();
+                try {
+                    mBSI.setVIN(textField.getText());
+                } catch (MessageException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
             }
         });
@@ -197,17 +223,6 @@ public class BSIDialog extends JDialog {
         tglbtnReceive.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 mBSI.setReceive(tglbtnReceive.isSelected());
-            }
-        });
-        
-        btnSendVIN.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    mBSI.sendVIN();
-                } catch (BSIException | CanFrameException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
             }
         });
         
@@ -255,9 +270,16 @@ public class BSIDialog extends JDialog {
                 mBSI.setDahsboardLightingEnabled(chckbxDashboardLightning.isSelected());
             }
         });
-        slider.addChangeListener(new ChangeListener() {
+        sliderBrightness.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                mBSI.setDashboardLightingBrightness((byte) slider.getValue());
+                mBSI.setDashboardLightingBrightness((byte) sliderBrightness.getValue());
+            }
+        });
+        
+        sliderTemperature.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                double temperature = sliderTemperature.getValue() / 10.0;
+                mBSI.setTemperature(temperature);
             }
         });
     }
@@ -266,7 +288,8 @@ public class BSIDialog extends JDialog {
         tglbtnStatus.setSelected(mBSI.isStatusStarted());
         tglbtnInfo.setSelected(mBSI.isInfoStarted());
         tglbtnReceive.setSelected(mBSI.isReceive());
-        slider.setValue(mBSI.getDashboardLightingBrightness());
+        sliderBrightness.setValue(mBSI.getDashboardLightingBrightness());
+        tglbtnVIN.setSelected(mBSI.isVINStarted());
         chckbxDashboardLightning.setSelected(mBSI.isDashboardLightingEnabled());
         
         boolean infoWindowStarted = mBSI.isInfoWindowStarted();

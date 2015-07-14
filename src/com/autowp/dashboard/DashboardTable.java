@@ -127,6 +127,11 @@ public class DashboardTable extends JTable {
         addPair(key, value ? "true" : "false");
     }
     
+    private void addPair(String key, double value)
+    {
+        addPair(key, new Double(value).toString());
+    }
+    
     private void addPair(String key, float value)
     {
         addPair(key, new Float(value).toString());
@@ -324,6 +329,9 @@ public class DashboardTable extends JTable {
                     addPair("1E0 Radio1 / Unknown1", r1m.getUnknown1());
                     addPair("1E0 Radio1 / Unknown2", r1m.isUnknown2());
                     addPair("1E0 Radio1 / Unknown3", r1m.getUnknown3());
+                    addPair("1E0 Radio1 / Unknown4", r1m.getUnknown4());
+                    addPair("1E0 Radio1 / Unknown5", r1m.getUnknown5());
+                    addPair("1E0 Radio1 / Unknown6", r1m.getUnknown6());
                     break;
                     
                 case CanComfort.ID_DISPLAY_CONDITIONING:
@@ -347,8 +355,11 @@ public class DashboardTable extends JTable {
                 case CanComfort.ID_DISPLAY_UNKNOWN1:
                     addPair("0DF DisplayUnknown1 / Hex", messageToHex(message));
                     DisplayUnknown1Message du1m = new DisplayUnknown1Message(message);
-                    addPair("0DF DisplayUnknown1 / isUnknown1", du1m.isUnknown1());
-                    addPair("0DF DisplayUnknown1 / isUnknown2", du1m.isUnknown2());
+                    addPair("0DF DisplayUnknown1 / Unknown1", du1m.isUnknown1());
+                    addPair("0DF DisplayUnknown1 / Unknown2", du1m.isUnknown2());
+                    addPair("0DF DisplayUnknown1 / Unknown3", du1m.isUnknown3());
+                    addPair("0DF DisplayUnknown1 / Unknown4", du1m.getUnknown4());
+                    addPair("0DF DisplayUnknown1 / Unknown5", du1m.getUnknown5());
                     break;
                     
                 case CanComfort.ID_BSI_INFO:
