@@ -18,7 +18,6 @@ import com.autowp.psa.message.BSIInfoMessage;
 import com.autowp.psa.message.BSIInfoWindowMessage;
 import com.autowp.psa.message.BSIStatusMessage;
 import com.autowp.psa.message.BSIVINMessage;
-import com.autowp.psa.message.CDChangerStatusMessage;
 import com.autowp.psa.message.ColumnKeypadMessage;
 import com.autowp.psa.message.CurrentCDTrackInfoMessage;
 import com.autowp.psa.message.CurrentCDTrackMessage;
@@ -39,6 +38,13 @@ import com.autowp.psa.message.RadioWelcomeMessage;
 import com.autowp.psa.message.TimeMessage;
 import com.autowp.psa.message.Track;
 import com.autowp.psa.message.VolumeMessage;
+import com.autowp.psa.message.cdchanger.CDChangerCurrentTrackMessage;
+import com.autowp.psa.message.cdchanger.CDChangerDisk2Message;
+import com.autowp.psa.message.cdchanger.CDChangerDiskMessage;
+import com.autowp.psa.message.cdchanger.CDChangerPingMessage;
+import com.autowp.psa.message.cdchanger.CDChangerStatusMessage;
+import com.autowp.psa.message.cdchanger.CDChangerTracksCountMessage;
+import com.autowp.psa.message.cdchanger.CDChangerWelcomeMessage;
 
 
 
@@ -204,7 +210,7 @@ public class DashboardTable extends JTable {
     public void addCanMessage(CanMessage message)
     {
         try {
-            switch (0/*message.getId()*/) {
+            switch (message.getId()) {
                 case CanComfort.ID_TRACK_LIST:
                     //trackList.processMessage(message);
                     break;
@@ -482,6 +488,54 @@ public class DashboardTable extends JTable {
                     addPair("2B6 BSIStatus / Hex", messageToHex(message));
                     BSIVINMessage cccm = new BSIVINMessage(message);
                     addPair("2B6 BSIStatus / VIN", cccm.getVIN());
+                    break;
+                }
+                
+                case CanComfort.ID_CD_CHANGER_PING: {
+                    addPair("531 CDChangerPing / Hex", messageToHex(message));
+                    CDChangerPingMessage rpm = new CDChangerPingMessage(message);
+                    break;
+                }
+                
+                case CanComfort.ID_CD_CHANGER_CURRENT_TRACK: {
+                    addPair("1E2 CDChangerCurrentTrack / Hex", messageToHex(message));
+                    CDChangerCurrentTrackMessage rpm = new CDChangerCurrentTrackMessage(message);
+                    addPair("1E2 CDChangerCurrentTrack / TrackNumber", rpm.getTrackNumber());
+                    addPair("1E2 CDChangerCurrentTrack / Time", String.format(
+                        "%s", 
+                        rpm.getCurrentTime()
+                    ));
+                    break;
+                }
+                
+                case CanComfort.ID_CD_CHANGER_WELCOME: {
+                    addPair("5F1 CDChangerWelcome / Hex", messageToHex(message));
+                    CDChangerWelcomeMessage rpm = new CDChangerWelcomeMessage(message);
+                    break;
+                }
+                
+                case CanComfort.ID_CD_CHANGER_DISK: {
+                    addPair("0E2 CDChangerDisk / Hex", messageToHex(message));
+                    CDChangerDiskMessage rpm = new CDChangerDiskMessage(message);
+                    addPair("0E2 CDChangerDisk / Disk", rpm.getDisk());
+                    break;
+                }
+                
+                case CanComfort.ID_CD_CHANGER_TRACKS_COUNT: {
+                    addPair("1A2 CDChangerTracksCount / Hex", messageToHex(message));
+                    CDChangerTracksCountMessage rpm = new CDChangerTracksCountMessage(message);
+                    addPair("1A2 CDChangerTracksCount / Count", rpm.getCount());
+                    break;
+                }
+                
+                case CanComfort.ID_CD_CHANGER_DISK2: {
+                    addPair("162 CDChangerDisk2 / Hex", messageToHex(message));
+                    CDChangerDisk2Message rpm = new CDChangerDisk2Message(message);
+                    addPair("162 CDChangerDisk2 / Disk", rpm.getDisk());
+                    addPair("162 CDChangerDisk2 / Loading", rpm.isLoading());
+                    addPair("162 CDChangerDisk2 / Unknown0", rpm.isUnknown0());
+                    addPair("162 CDChangerDisk2 / Unknown1", rpm.isUnknown1());
+                    addPair("162 CDChangerDisk2 / Unknown5", rpm.getUnknown5());
                     break;
                 }
                     
