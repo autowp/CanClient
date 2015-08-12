@@ -41,6 +41,8 @@ import com.autowp.elm327.Elm327;
 import com.autowp.psa.CanComfortSpecs;
 import com.autowp.psa.bsi.BSI;
 import com.autowp.psa.bsi.BSIDialog;
+import com.autowp.psa.cdchanger.CDChanger;
+import com.autowp.psa.cdchanger.CDChangerDialog;
 import com.autowp.psa.columnkeypad.ColumnKeypadDialog;
 import com.autowp.psa.display.DisplayDialog;
 import com.autowp.psa.message.MessageException;
@@ -53,6 +55,7 @@ public class Main {
     
     private CanClient client;
     private BSI mBSI;
+    private CDChanger mCD;
     
     private JTextArea canhackerLogTextArea;
     private CanFrameTable canSentTable;
@@ -77,6 +80,7 @@ public class Main {
     private final Action showColumnKeypadAction = new ShowColumnKeypadAction();
     private final Action showRadioKeypadAction = new ShowRadioKeypadAction();
     private final Action showBSIAction = new ShowBSIAction();
+    private final Action showCDChangerAction = new ShowCDChangerAction();
 
     public SenderDialog senderDialog;
 
@@ -84,6 +88,9 @@ public class Main {
     public RadioKeypadDialog radioKeypadDialog;
 
     public BSIDialog mBSIDialog;
+
+    public CDChangerDialog mCDChangerDialog;
+    
 
     /**
      * Launch the application.
@@ -258,6 +265,10 @@ public class Main {
         JMenuItem mntmShowRadioKeypad = new JMenuItem("Show radio keypad");
         mntmShowRadioKeypad.setAction(showRadioKeypadAction);
         mnNewMenu_1.add(mntmShowRadioKeypad);
+        
+        JMenuItem mntmShowCdChanger = new JMenuItem("Show CD changer");
+        mntmShowCdChanger.setAction(showCDChangerAction);
+        mnNewMenu_1.add(mntmShowCdChanger);
 
     }
     
@@ -313,7 +324,7 @@ public class Main {
                         Elm327 elm327 = new Elm327();
                         elm327.setPortName((String) portNameBox.getSelectedItem());
                         
-                        elm327.addEventListener(new com.autowp.elm327.CommandSendEventListener() {
+                        /*elm327.addEventListener(new com.autowp.elm327.CommandSendEventListener() {
                             @Override
                             public void handleCommandSendEventClassEvent(com.autowp.elm327.CommandSendEvent e) {
                                 logCanhacker("-> " + e.getCommand().toString());
@@ -325,7 +336,7 @@ public class Main {
                             public void handleResponseReceivedEventClassEvent(com.autowp.elm327.ResponseReceivedEvent e) {
                                 logCanhacker("<- " + e.getCommand().toString());
                             }
-                        });
+                        });*/
                         
                         client.setAdapter(elm327);
                         
@@ -336,7 +347,7 @@ public class Main {
                         canHacker.setPortName((String) portNameBox.getSelectedItem());
                         canHacker.setSpeed(115200);
                         
-                        canHacker.addEventListener(new CanHacker.OnCommandSentListener() {
+                        /*canHacker.addEventListener(new CanHacker.OnCommandSentListener() {
                             @Override
                             public void handleCommandSentEvent(Command command) {
                                 logCanhacker("-> " + command.toString());
@@ -349,7 +360,7 @@ public class Main {
                                     Response response) {
                                 logCanhacker("<- " + response.toString());
                             }
-                        });
+                        });*/
                         
                         client.setAdapter(canHacker);
                         break;
@@ -370,6 +381,9 @@ public class Main {
                     bsi.startInfoWindow();
                     bsi.setDashboardLightingBrightness((byte) 0x08);
                     logCanhacker("Emulation started");
+                    
+                    mCD = new CDChanger(client);
+                    mCD.start();
                     
                     if (mBSIDialog != null) {
                         mBSIDialog.refreshControls();
@@ -408,6 +422,8 @@ public class Main {
                     if (mBSIDialog != null) {
                         mBSIDialog.refreshControls();
                     }
+                    
+                    mCD.stop();
                     
                     client.disconnect();
                     logCanhacker("Disconnected");
@@ -558,6 +574,23 @@ public class Main {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
+        }
+    }
+    
+    private class ShowCDChangerAction extends AbstractAction {
+        private static final long serialVersionUID = 1L;
+        public ShowCDChangerAction() {
+            putValue(NAME, "Show CD changer");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (mCDChangerDialog == null) {
+                mCDChangerDialog = new CDChangerDialog(mCD);
+            } else {
+                mCDChangerDialog.setCDChanger(mCD);
+            }
+            
+            mCDChangerDialog.setVisible(true);
+            mCDChangerDialog.toFront();
         }
     }
 }
