@@ -534,7 +534,7 @@ public class DashboardTable extends JTable {
                     addPair("162 CDChangerDisk2 / Disk", rpm.getDisk());
                     addPair("162 CDChangerDisk2 / Loading", rpm.isLoading());
                     addPair("162 CDChangerDisk2 / Unknown0", rpm.isUnknown0());
-                    addPair("162 CDChangerDisk2 / Unknown1", rpm.isUnknown1());
+                    addPair("162 CDChangerDisk2 / Icon", rpm.getIcon());
                     addPair("162 CDChangerDisk2 / Unknown5", rpm.getUnknown5());
                     break;
                 }

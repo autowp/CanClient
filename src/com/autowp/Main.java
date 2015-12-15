@@ -38,6 +38,7 @@ import com.autowp.canhacker.command.Command;
 import com.autowp.canhacker.response.Response;
 import com.autowp.dashboard.DashboardDialog;
 import com.autowp.elm327.Elm327;
+import com.autowp.netcan.NetCan;
 import com.autowp.psa.CanComfortSpecs;
 import com.autowp.psa.bsi.BSI;
 import com.autowp.psa.bsi.BSIDialog;
@@ -167,12 +168,12 @@ public class Main {
         
         list = new JList<String>();
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.setModel(new AbstractListModel<String>() {
-            String[] values = new String[] {"ArduinoCan", "ELM327", "CanHacker"};
+        list.setModel(new AbstractListModel() {
+            String[] values = new String[] {"NetCan", "ArduinoCan", "ELM327", "CanHacker"};
             public int getSize() {
                 return values.length;
             }
-            public String getElementAt(int index) {
+            public Object getElementAt(int index) {
                 return values[index];
             }
         });
@@ -302,6 +303,15 @@ public class Main {
                 logCanhacker("Connecting\n");
                 
                 switch (list.getSelectedValue()) {
+                    case "NetCan":
+                        NetCan netCan = new NetCan();
+                        netCan
+                            .setHostname("192.168.88.230")
+                            .setPort(20100);
+                        
+                        client.setAdapter(netCan);
+                        
+                        break;
                     case "ArduinoCan":
                         ArduinoCanSerial canAdapter = new ArduinoCanSerial();
                         canAdapter.setPortName((String) portNameBox.getSelectedItem());
@@ -384,6 +394,10 @@ public class Main {
                     
                     mCD = new CDChanger(client);
                     mCD.start();
+                    
+                    if (mCDChangerDialog != null) {
+                        mCDChangerDialog.setCDChanger(mCD);
+                    }
                     
                     if (mBSIDialog != null) {
                         mBSIDialog.refreshControls();

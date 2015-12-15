@@ -265,5 +265,24 @@ public class CDChangerDialog extends JDialog {
             spinnerCurrentTrack.setValue(new Byte(cdChanger.getCurrentTrack()));
         }
         
+        if (cdChangerSet) {
+            mCDChanger.addEventListener(new CDChanger.OnChangeListener() {
+                @Override
+                public void handle() {
+                    Byte value = new Byte(mCDChanger.getCurrentTrack());
+                    spinnerCurrentTrack.setValue(value);
+                }
+
+                @Override
+                public void handleForward() {
+                    System.out.println("Forward");
+                }
+
+                @Override
+                public void handleBackward() {
+                    System.out.println("Backward");
+                }
+            });
+        }
     }
 }
